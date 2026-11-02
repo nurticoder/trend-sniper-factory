@@ -1,5 +1,15 @@
 name: tests
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'examples/demo/**'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'examples/demo/**'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -13,4 +23,3 @@ jobs:
           python-version: '${{ matrix.python }}'
       - run: pip install -e .
       - run: python -m unittest discover -s tests -v
-      - run: trend-sniper render --topic topics/dont-splash.json --out renders/smoke

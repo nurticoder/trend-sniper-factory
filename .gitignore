@@ -9,3 +9,16 @@ token*.json
 renders/
 queue.json
 .DS_Store
+
+# Platform state and web tooling
+node_modules/
+dist/
+coverage/
+.pytest_cache/
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+local-data/
+media-cache/
