@@ -68,7 +68,7 @@ This episode makes **zero paid API calls**. Runtime is recorded in `manifest.jso
 ## Verification
 
 ```sh
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -p test_pipeline.py -v
 trend-sniper render --topic topics/dont-splash.json --out renders/smoke
 ```
 

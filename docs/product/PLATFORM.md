@@ -55,7 +55,7 @@ The editor trims and fades clips, avoids unwanted overlaps, ducks music under sp
 
 ## Platform shape and costs
 
-Proposed implementation: React + TypeScript browser interface, a Python FastAPI service, SQLite persistence and an independent local Python render worker using FFmpeg. One repository and one user first. No Redis, Kubernetes, paid database or subscription is required for the first slice.
+Current first slice: buildless HTML/CSS/JavaScript browser interface, a Python FastAPI service, SQLite persistence and an independent local Python render worker using FFmpeg. One repository and one user first. React + TypeScript remains a possible later frontend migration; the initial interface needs no Node setup. No Redis, Kubernetes, paid database or subscription is required for the first slice.
 
 SQLite stores opportunities, ideas, scripts, asset records, jobs, review decisions and results. Large media stays on disk outside Git. The database holds durable queued/running/completed/failed jobs with attempts and errors; an independent worker resumes or reconciles interrupted jobs. Heavy renders must not depend on an in-request background task staying alive.
 
@@ -95,3 +95,7 @@ These are ordered slices, not a promise to build all modules in one chat. Split 
 ## Intentionally postponed
 
 Multi-user accounts, billing, mobile apps, a public hosted service, a visual editing suite, universal game simulators and autonomous mass publishing. The first format must still be original and worth watching. More automation cannot establish audience demand by itself.
+
+## Control-room delivery status
+
+Implemented in v0.2 on `feat/control-room`: the local browser board/library, opportunity/evidence forms, manual idea/script studio, version history, stage validation and JSON export. Records persist in SQLite and stale saves are rejected. The first slice intentionally exposes manual writing instead of pretending a generation provider is connected. Automatic opportunity analysis and script generation remain subsequent slices. The renderer is still CLI-only; there is no dashboard production worker.

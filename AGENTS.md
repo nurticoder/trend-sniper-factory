@@ -11,6 +11,7 @@ The active source of truth is this Git checkout. Earlier ZIPs and copies in the 
 - Before each new feature or meaningful task, inspect status and create a named branch from the appropriate clean base. Use feat/, fix/, docs/ or chore/. Do not overwrite existing user changes.
 - Commit coherent working increments with clear messages. Run checks appropriate to the change; pure documentation does not need a video render.
 - Push verified increments to the configured GitHub remote when authorized access is available. The user has requested normal ongoing pushes for this project. Report failed pushes honestly; do not claim local commits are remote.
+- Before ending a development session, run the relevant checks and push passing work to GitHub. End with a 1–3 word push description. If checks fail or push is blocked, report that explicitly rather than claiming success.
 - Open a reviewable PR for completed work. Avoid unrelated changes, empty commits, artificial push counts, backdating and force pushes.
 - Record the current milestone and a concrete next task in the PR so work can continue without replaying chat history.
 

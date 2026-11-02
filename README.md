@@ -4,13 +4,31 @@ A local-first creator platform: **discover niches → analyze opportunities → 
 
 The goal is a browser dashboard that runs the workflow without asking a development chat to make each video. Designed for one creator, minimal recurring costs and limited time. Gaming Shorts are the first use case; DONT SPLASH and Poppy Playtime are example subjects, not fixed niches or verified growth opportunities.
 
-## What exists today
+![Control room with an explicitly labeled local example](docs/images/control-room.png)
 
-- A tested Python/FFmpeg renderer with original procedural animation, generated audio, captions, upload copy and provenance manifests.
-- A local review gate tied to artifact hashes and a simple JSON schedule queue.
-- A preserved technical demo, source licenses and CI.
+## Start the dashboard
 
-**The browser platform, automatic discovery, script generation, audio library, OAuth publishing and analytics are planned, not implemented.** The renderer is one component of the future factory. Its current pool-puzzle demo proves the technical pipeline, not audience demand or creative quality.
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[web,test]"
+trend-sniper serve
+```
+
+Open **http://127.0.0.1:8765**. After installation, macOS users can double-click `start.command` to start the server and open a browser. Keep its terminal running while using the app; Ctrl+C stops it. Windows users activate `.venv\Scripts\activate` instead.
+
+## What works today
+
+- Responsive control-room board and searchable opportunity library.
+- Create/edit/archive topics with a niche, hypothesis, reference link and dated manual evidence.
+- Multiple original ideas per opportunity; editable hooks, payoffs, scripts, storyboards and audio cue sheets.
+- Editorial stages: Idea → Writing → Script ready. Readiness requires a complete brief and never approves publication.
+- Saved script history, stale-edit conflict detection, unsaved-change protection and JSON brief export.
+- Local SQLite persistence across browser reloads and app restarts.
+- Honest disconnected states for discovery, AI scripts, YouTube and analytics.
+- The existing original Python/FFmpeg renderer remains available through its CLI, separate from this dashboard.
+
+**Automatic discovery/analysis, model-generated scripts, media/sound selection, dashboard render jobs, OAuth publishing and analytics are not implemented yet.** Manual briefs are labeled manual. The included pool-puzzle video is a preserved technical fixture, not proof of audience demand.
 
 ## The essential platform
 
@@ -25,11 +43,21 @@ The goal is a browser dashboard that runs the workflow without asking a developm
 
 Read the [product direction and ordered build plan](docs/product/PLATFORM.md). First implementation slice: **a persistent control room and opportunity-to-script workflow**, before further video generation.
 
-## Proposed stack
+## Current stack
 
-React + TypeScript interface, Python FastAPI service, SQLite and an independent local FFmpeg worker. One repository, one user first. Heavy media stays on disk outside Git. No paid cloud service is required to start. The computer must stay awake for local jobs; always-on hosting is a separate future decision.
+Buildless HTML/CSS/JavaScript interface, Python FastAPI service and SQLite. This first slice avoids a Node installation or frontend build; all static assets ship inside the Python package. The earlier React interface proposal is deferred until component complexity justifies it. No web font, CDN, paid provider or cloud database is used.
 
-The web stack is a plan, not installed dependencies. Current package dependencies belong only to the rendering engine.
+The server binds only to `127.0.0.1`, restricts Host headers and cross-origin writes, and serves same-origin assets with a content security policy. It is a **single-user local tool without authentication**, not a public hosting configuration. Do not expose it through a tunnel or bind it to a public interface.
+
+App data is stored in ignored `local-data/control-room.sqlite3` relative to the launch directory. Choose another database with `trend-sniper serve --db PATH` or the exported `TSF_DB_PATH` environment variable. `.env` files are not automatically loaded. Stop the server before copying the SQLite database for backup; keep backups private and outside Git. The browser QA example on the development machine is explicitly labeled “Example”; a fresh checkout/database starts empty.
+
+## Check the project
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Nine tests cover real media roundtrip, persistence after a new app instance, evidence validation, archival behavior, script readiness, version history, stale edits, export, local-request boundaries and static files. Browser QA covers create/edit/save/reload, search, library navigation, version history and the actual downloaded JSON on mobile/desktop breakpoints. See [control-room verification](docs/control-room-validation.md).
 
 ## Existing renderer
 
@@ -39,7 +67,7 @@ For installation, commands, output format, batch generation and local review/que
 
 Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-Current milestone: product foundation. Next branch: `feat/control-room`.
+Current milestone: the control room is implemented on `feat/control-room`. Next slice: evidence-backed opportunity analysis and provider adapters; no credentials are needed for manual work.
 
 ## Rights, cost and honest scope
 

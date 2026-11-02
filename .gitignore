@@ -22,3 +22,9 @@ coverage/
 *.db-shm
 local-data/
 media-cache/
+
+# Tool build artifacts and session-only QA
+build/
+work/
+*.sqlite3-wal
+*.sqlite3-shm

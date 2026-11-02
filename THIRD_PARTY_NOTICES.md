@@ -15,3 +15,7 @@ The installed FFmpeg build configuration is saved beside every rendered video in
 No game footage, artwork, logos, textures, characters, music or downloaded stock is used. Game names and the official game URL are descriptive references, not a grant to use game assets or an affiliation claim. The renderer does not accept external assets in v0.1. Any later asset adapter must record creator, source URL, exact license and permission evidence in the manifest before rendering. Attribution alone is not permission.
 
 A `TSF_FONT` override is the user's responsibility: use a font with explicit permitted video/commercial use. Do not load random downloaded fonts and assume the Pillow license covers them.
+
+## Optional control-room dependencies
+
+FastAPI and Pydantic use MIT licenses; Uvicorn and Starlette use BSD-3-Clause licenses. Test-only HTTPX2 uses its installed upstream license (copied in `docs/licenses/httpx2-LICENSE.txt`). Direct dependency license texts are included in `docs/licenses/`. These packages are installed separately by pip; this repository does not vendor their source or executables. Transitive dependencies keep their own notices. The dashboard uses system fonts and original CSS/SVG assets; it loads no external font or CDN.
