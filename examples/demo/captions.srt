@@ -1,0 +1,29 @@
+1
+00:00:00,000 --> 00:00:04,000
+ONE POOL. TWO ROUTES.
+Which route avoids the splash?
+
+2
+00:00:04,000 --> 00:00:08,000
+THE PUZZLE RULE
+In THIS puzzle: a landing on water makes noise.
+
+3
+00:00:08,000 --> 00:00:13,000
+A: THE SHORTCUT
+Two jumps. One wet landing. Watch the ripple.
+
+4
+00:00:13,000 --> 00:00:18,000
+B: THE LONG WAY
+Stay on the stepping stones. More steps, less noise.
+
+5
+00:00:18,000 --> 00:00:22,000
+B WINS THIS ROUND
+The shortest route is not always the quietest.
+
+6
+00:00:22,000 --> 00:00:25,000
+DID YOU PICK B?
+Original animation. Not game footage or a game guide.

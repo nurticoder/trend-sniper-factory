@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "topic_id": "dont-splash-pool-puzzle",
+  "source_url": "https://www.roblox.com/games/119958473240233/DONT-SPLASH",
+  "trend_status": "unverified hypothesis; no growth claim",
+  "duration_seconds": 25,
+  "width": 720,
+  "height": 1280,
+  "fps": 24,
+  "audio": "original procedural PCM → AAC; no voice",
+  "visuals": "original Python geometry; Pillow bundled font or TSF_FONT override",
+  "assets": [],
+  "rights": "No external game art, clips, logos, music, or character assets",
+  "sha256": {
+    "short.mp4": "be1f57f0f1667ad14794d701adef205c5a6956096a606bd9fa94f7cdedf67627",
+    "script.json": "9dee8f54c1d3da5eab55576bfd13518ded8f34196fe5647e50c0b65609d3fb9d",
+    "metadata.json": "060f01d769bd5f721641057d1066a3e85adc8cc7ee2d4d2a1bd6894168b23454",
+    "captions.srt": "76aae725082c6d871fa0fd21b3337fd407067e1e169fc3bd0a167b0ccffdd638"
+  },
+  "cost": {
+    "paid_api_usd": 0,
+    "wall_seconds": 5.97,
+    "electricity_and_hardware": "not measured"
+  },
+  "validation": "entire MP4 decoded by FFmpeg with -xerror"
+}
