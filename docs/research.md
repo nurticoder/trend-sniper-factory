@@ -27,3 +27,12 @@ No image generator or LLM is needed to validate the first complete pipeline. Mor
 ## Low-time development order
 
 Before exams end on December 15, keep the project runnable with one command and work in small optional sessions: assess the demo, create a genuinely distinct second visual treatment, then implement private upload with tests. Connecting a channel is only needed for that upload milestone. Do not consume time producing dozens of near-identical videos before testing whether the first format works.
+
+## Platform foundation sources
+
+- [FastAPI background-task guidance](https://fastapi.tiangolo.com/tutorial/background-tasks/): small background actions differ from heavier computation. Proposed renders use a separate persisted worker.
+- [SQLite appropriate uses](https://www.sqlite.org/whentouse.html): supports choosing a local application database for one creator, with a future migration decision if concurrency requirements change.
+- [React documentation](https://react.dev/learn): proposed browser interface; no frontend implementation is present yet.
+- [YouTube Audio Library](https://support.google.com/youtube/answer/3376882): music/effects can be filtered by mood and duration; Creative Commons tracks require attribution. Retain each track's terms.
+
+These sources were checked for planning. No web dependencies, audio downloads or external jobs were added.
