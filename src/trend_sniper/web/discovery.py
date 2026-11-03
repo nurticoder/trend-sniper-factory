@@ -11,6 +11,8 @@ from xml.etree import ElementTree as ET
 SNAPSHOT = Path(__file__).with_name('static') / 'niches.json'
 # One default format per source, plus topic-specific formats inferred from titles.
 SOURCES = [
+ ('Drama','Family twist stories','UC_hK9fOxyy_TM8FJGXIyG8Q'),
+ ('News','Daily news bulletins','UC16niRr50-MSBwiO3YDb3RA'),
  ('Gaming','Roblox community challenges','UCm-X6o81nRsXQTmqpyArkBQ'),
  ('Gaming','Roblox update explainers','UCxsk7hqE_CwZWGEJEkGanbA'),
  ('Gaming','Minecraft redstone experiments','UChFur_NwVSbUozOcF_F2kMg'),
@@ -81,6 +83,16 @@ def collect(previous=None):
     cards=[c for group,_ in results for c in group]
     failed={key for _,key in results if key}
     if not cards: raise ValueError('No recent source observations available')
+    history={c['id']:c for c in (previous or {}).get('cards',[])}
+    for card in cards:
+        prior=history.get(card['id'])
+        if prior:
+            days=(now-datetime.fromisoformat(prior['observed'])).total_seconds()/86400
+            counts={v['video']:v['views'] for v in prior['examples'] if v['views'] is not None}
+            gains=[(v['views']-counts[v['video']])/days for v in card['examples']
+                   if .5<=days<=3 and v['video'] in counts and v['views'] is not None and v['views']>=counts[v['video']]]
+            if gains:
+                card['daily_gain']=round(statistics.median(gains))
     cards.extend(c for c in (previous or {}).get('cards',[]) if c['id'].split('/')[0] in failed)
     # Interleave categories so the biggest channel cannot occupy the entire feed.
     lanes={}

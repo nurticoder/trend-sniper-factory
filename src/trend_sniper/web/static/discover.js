@@ -20,8 +20,19 @@ function chosen(c){
   const box=id('selection');box.hidden=false;
   box.replaceChildren(el('small','SELECTED FOR PRODUCTION'),el('h2',c.name),
     el('p','Saved direction · '+c.category+' · '+c.channel),
-    el('p','Production brief: create an original illustrated explainer around one viewer question raised by these examples.'),
+    el('p',c.pitch || 'Choose a current production pick below.'),
     references(c));
+  if(!c.format)return;
+  const make=el('button','Produce a Short →');make.className='primary';box.append(make);
+  make.onclick=async()=>{
+    make.disabled=true;
+    try{
+      const job=await api('/api/niche-production?key='+encodeURIComponent(c.id),{method:'POST'});
+      localStorage.setItem('activeProduction',job.id);
+      await watch(job.id);
+    }catch(e){id('status').textContent=e.message;}
+    finally{make.disabled=false;}
+  };
 }
 function card(c){
   const a=el('article','');a.className='niche';
@@ -35,26 +46,43 @@ function card(c){
     catch(e){id('status').textContent=e.message;}finally{button.disabled=false;}
   };
   const detail=el('details','');detail.append(el('summary','View video evidence ('+c.examples.length+')'),references(c));
-  b.append(el('small',c.category.toUpperCase()),el('h2',c.name),
-    el('strong',c.pace===null?'View counts unavailable':c.pace.toLocaleString()+' views/day'),
+  b.append(el('small',c.format.toUpperCase()+'　/　'+c.category.toUpperCase()),el('h2',c.name),
+    el('p',c.pitch),el('strong',c.daily_gain!=null?c.daily_gain.toLocaleString()+' views/day since previous scan':c.pace===null?'View counts unavailable':c.pace.toLocaleString()+' views/day · lifetime pace'),
     el('p',c.count+' matching uploads · '+c.channel+' · observed '+c.observed.slice(0,10)),detail,button);
   a.append(img,b);return a;
 }
 async function page(){
   if(busy||offset===null)return;
-  busy=true;id('category').disabled=true;id('more').disabled=true;
+  busy=true;id('format').disabled=true;id('category').disabled=true;id('more').disabled=true;
   try{
-    const d=await api('/api/niches?offset='+offset+'&category='+encodeURIComponent(id('category').value));
+    const d=await api('/api/niches?offset='+offset+'&category='+encodeURIComponent(id('category').value)+'&format='+encodeURIComponent(id('format').value));
     if(id('category').options.length===1)for(const c of d.categories)id('category').add(new Option(c,c));
     id('stamp').textContent=d.total+' niches · Scan '+d.observed.slice(0,10)+' · '+d.sources+' feeds checked';
     id('cards').append(...d.cards.map(card));offset=d.next;
     id('more').hidden=offset===null;
     id('status').textContent=d.error?'Latest scan failed. Showing saved observations.':d.failed?d.failed+' feeds unavailable. Each card shows its observation date.':offset===null?'You’ve reached the end of this scan. New observations are checked daily while the factory runs.':'';
   }catch(e){id('status').textContent=e.message;}
-  finally{busy=false;id('category').disabled=false;id('more').disabled=false;}
+  finally{busy=false;id('format').disabled=false;id('category').disabled=false;id('more').disabled=false;}
 }
-id('category').onchange=()=>{offset=0;id('cards').replaceChildren();id('more').hidden=false;page();};
+id('format').onchange=id('category').onchange=()=>{offset=0;id('cards').replaceChildren();id('more').hidden=false;page();};
 id('more').onclick=page;
 new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))page();},{rootMargin:'180px'}).observe(id('more'));
 api('/api/niche-selection').then(chosen).catch(e=>id('status').textContent=e.message);
 page();
+
+let jobTimer;
+async function watch(key){
+  clearTimeout(jobTimer);
+  const box=id('output');
+  const job=(await api('/api/productions')).find(item=>item.id===key);
+  if(!job)return;
+  box.hidden=false;box.replaceChildren(el('small','PRODUCTION'),el('h2',job.title));
+  if(job.status==='ready'){
+    const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
+    const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
+  }else{
+    box.append(el('p',job.error || 'Factory status · '+job.status));
+    if(['queued','running'].includes(job.status))jobTimer=setTimeout(()=>watch(key).catch(e=>id('status').textContent=e.message),1800);
+  }
+}
+if(localStorage.getItem('activeProduction'))watch(localStorage.getItem('activeProduction')).catch(e=>id('status').textContent=e.message);

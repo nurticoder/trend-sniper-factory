@@ -6,6 +6,7 @@ from threading import Lock
 
 from fastapi import HTTPException, Query
 
+from .formats import eligible
 from .discovery import collect, SNAPSHOT
 
 
@@ -15,7 +16,10 @@ def install(app, store):
     status = {'error': None, 'scanning': False}
 
     def read():
-        return json.loads((cache if cache.exists() else SNAPSHOT).read_text())
+        seed=json.loads(SNAPSHOT.read_text())
+        if not cache.exists(): return seed
+        saved=json.loads(cache.read_text())
+        return max((saved,seed),key=lambda item:item['observed'])
 
     def refresh():
         if not gate.acquire(blocking=False):
@@ -52,10 +56,10 @@ def install(app, store):
         db.execute('CREATE TABLE IF NOT EXISTS chosen_niche(slot INTEGER PRIMARY KEY, snapshot TEXT NOT NULL)')
 
     @app.get('/api/niches')
-    def niches(offset:int=Query(0,ge=0), category:str=''):
+    def niches(offset:int=Query(0,ge=0), category:str='', format:str=''):
         snapshot = read()
-        all_cards = snapshot['cards']
-        entries = [c for c in all_cards if not category or c['category']==category]
+        all_cards = eligible(snapshot['cards'])
+        entries = [c for c in all_cards if (not category or c['category']==category) and (not format or c['format']==format)]
         end = offset+9
         return dict(cards=entries[offset:end],next=end if end<len(entries) else None,total=len(entries),
                     categories=sorted({c['category'] for c in all_cards}),observed=snapshot['observed'],
@@ -69,9 +73,17 @@ def install(app, store):
 
     @app.post('/api/niche-selection')
     def select(key:str):
-        card = next((c for c in read()['cards'] if c['id']==key),None)
+        card = next((c for c in eligible(read()['cards']) if c['id']==key),None)
         if card is None:
             raise HTTPException(404,'This observation has expired. Reload the feed.')
         with store.connection() as db:
             db.execute('INSERT OR REPLACE INTO chosen_niche VALUES (1,?)',(json.dumps(card),))
         return card
+
+
+    @app.post('/api/niche-production', status_code=202)
+    def produce_selected(key:str):
+        card = selected()
+        if not card or card['id'] != key or not eligible([card]):
+            raise HTTPException(409,'Select this format before production.')
+        return app.state.enqueue('format/'+key+'/'+card['observed'],{'title':card['name'],'recipe_card':card})

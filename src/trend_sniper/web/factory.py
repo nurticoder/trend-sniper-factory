@@ -95,7 +95,13 @@ def install(app,store):
         try:
             with store.connection() as db:
                 db.execute("UPDATE productions SET status='running' WHERE id=?",(job,))
-            render(script,root/job,draw_frame=frame)
+            draw = frame
+            if 'recipe_card' in script:
+                from .formats import build, frame as draw
+                script = build(script['recipe_card'])
+                with store.connection() as db:
+                    db.execute('UPDATE productions SET script=? WHERE id=?',(json.dumps(script),job))
+            render(script,root/job,draw_frame=draw)
             with store.connection() as db:
                 db.execute("UPDATE productions SET status='ready' WHERE id=?",(job,))
         except Exception as exc:
@@ -110,6 +116,9 @@ def install(app,store):
             raise HTTPException(404,'Recommendation expired')
         script = brief(card,data['date'])
         key = f"{appid}/{data['date']}"
+        return enqueue(key,script)
+
+    def enqueue(key,script):
         job = uuid4().hex
         with store.connection() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -121,6 +130,8 @@ def install(app,store):
             db.execute('INSERT INTO productions VALUES (?,?,?,?,?)',(job,key,json.dumps(script),'queued',''))
         worker.submit(run,job,script)
         return {'id':job}
+
+    app.state.enqueue = enqueue
 
     @app.get('/api/productions')
     def jobs():

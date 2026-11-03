@@ -71,3 +71,9 @@ Current milestone: the control room is implemented on `feat/control-room`. Next 
 All production assets must carry permission evidence; popular meme sounds are not automatically free to reuse. Default to owned, licensed or original synthesized audio. An asset licensed only for YouTube's native Shorts creation flow cannot be assumed usable in an exported MP4.
 
 Originality, audience designation and publication decisions require real review. No trend, monetization or income guarantees. Paid provider calls must be optional, budgeted and visible. Source code is MIT; dependencies retain their own licenses. See [third-party notices](THIRD_PARTY_NOTICES.md), [research](docs/research.md) and [baseline validation](docs/validation.md).
+
+### Format studio
+
+The current homepage filters daily observations to five automatic production recipes. Family drama, later-life letters and block-world quests use the local Ollama model `llama3.2:3b` when available. A built-in authored episode covers an offline model. News desk attributes dated headline cards to the reporting channel. Countdown ranks the observed reference uploads by recorded views. Source thumbnails stay in the research interface. Each output uses original motion graphics, on-screen text and synthesized sound. Select a card and press **Produce a Short** to queue the MP4. Publishing and audience review remain separate.
+
+Daily scans compare the same videos across snapshots when available. Initial picks use lifetime views per day. Source-channel attention is a proxy for the proposed format, particularly when adapting family fiction for older viewers.
