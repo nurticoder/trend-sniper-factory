@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, model_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -135,11 +135,11 @@ def create_app(db_path: Path | None = None):
 
     @app.get('/steam', include_in_schema=False)
     def steam():
-        return FileResponse(STATIC / 'factory.html')
+        return RedirectResponse('/#steam', status_code=303)
 
     @app.get('/studio', include_in_schema=False)
     def studio():
-        return FileResponse(STATIC / 'index.html')
+        return RedirectResponse('/#control', status_code=303)
 
     app.mount('/static', StaticFiles(directory=STATIC), name='static')
     from .factory import install

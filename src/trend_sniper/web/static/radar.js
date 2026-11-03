@@ -13,7 +13,7 @@ function link(text,url) {
   const a=element('a',text); a.href=url; return a;
 }
 function display(data) {
-  byId('stamp').textContent='Steam observations · '+data.date+' UTC';
+  byId('steam-stamp').textContent='Steam observations · '+data.date+' UTC';
   byId('picks').replaceChildren(...data.cards.map(c=>{
     const card=element('article',''); card.className='pick';
     const label=element('span',c.niche); label.className='card-label';
@@ -22,7 +22,7 @@ function display(data) {
     const button=element('button','Produce Short →');button.className='primary';
     button.onclick=async()=>{
       button.disabled=true;
-      try {await request('/api/radar/'+c.appid+'/produce','POST');await jobs();byId('jobs').scrollIntoView();}
+      try {await request('/api/radar/'+c.appid+'/produce','POST');location.hash='control';}
       catch(e){byId('message').textContent=e.message;}
       finally{button.disabled=false;}
     };
@@ -53,6 +53,8 @@ async function scan(){
   try{display(await request('/api/radar/refresh','POST'));byId('message').textContent='Rank movement measures Steam activity. YouTube demand is still unmeasured.';}
   catch(e){report(e);}finally{byId('scan').disabled=false;}
 }
+export function openSteam(){
 byId('scan').onclick=scan;
 request('/api/radar').then(data=>{display(data);if(Date.now()-Date.parse(data.date)>86400000)scan();}).catch(report);
-jobs().catch(report);
+}
+export {jobs};
