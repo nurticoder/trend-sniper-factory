@@ -77,7 +77,7 @@ def create_app(db_path: Path | None = None):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'no-referrer'
         response.headers['Content-Security-Policy'] = (
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; "
+            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://i.ytimg.com; "
             "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         if request.url.path.startswith('/api/'):
             response.headers['Cache-Control'] = 'no-store'
@@ -131,6 +131,10 @@ def create_app(db_path: Path | None = None):
 
     @app.get('/', include_in_schema=False)
     def index():
+        return FileResponse(STATIC / 'discover.html')
+
+    @app.get('/steam', include_in_schema=False)
+    def steam():
         return FileResponse(STATIC / 'factory.html')
 
     @app.get('/studio', include_in_schema=False)
@@ -140,4 +144,6 @@ def create_app(db_path: Path | None = None):
     app.mount('/static', StaticFiles(directory=STATIC), name='static')
     from .factory import install
     install(app, store)
+    from .niches import install as install_niches
+    install_niches(app, store)
     return app

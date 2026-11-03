@@ -19,7 +19,9 @@ Open **http://127.0.0.1:8765**. After installation, macOS users can double-click
 
 ## What works today
 
-The homepage opens with three Steam chart observations. Each card shows its game, genre, peak player count, chart movement and source date. The app ships a real November 2 snapshot, refreshes an older snapshot on open and offers **Scan again**. It retains the last dated scan when Steam is unavailable. Recommendations reflect Steam chart activity. YouTube audience demand and Roblox coverage are outside this first feed.
+The homepage is a scrolling niche explorer. It groups recent YouTube channel feed observations into editorial directions, interleaves categories, links thumbnail previews and original videos, and saves the selected niche for the production milestone. A background task checks for a due scan every ten minutes while the server is running and refreshes observations after 24 hours. Pace measures lifetime views divided by upload age (minimum one day), summarized by the group median. The feed ends when all observed niches have been shown.
+
+The separate Steam factory at `/steam` opens with three Steam chart observations. Each card shows its game, genre, peak player count, chart movement and source date. The app ships a real November 2 snapshot, refreshes an older snapshot on open and offers **Scan again**. It retains the last dated scan when Steam is unavailable. Recommendations reflect Steam chart activity. YouTube audience demand and Roblox coverage are outside this first feed.
 
 Choose **Produce Short** to create a 14-second original chart reveal or animated comeback with synthesized sound, timed captions, title and description. A local worker renders in the background and stores its status alongside the workspace. Repeat clicks reuse the same job. Interrupted jobs can be retried after restart. Run one server per database. Preview the MP4 and download it or its metadata under **Your productions**.
 
