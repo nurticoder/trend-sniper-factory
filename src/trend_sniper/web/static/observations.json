@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-02",
+  "source": "https://api.steampowered.com/ISteamChartsService/GetMostPlayedGames/v1/",
+  "cards": [
+    {
+      "rank": 4,
+      "appid": 4115450,
+      "last_week_rank": -1,
+      "peak_in_game": 827122,
+      "name": "Phantom Blade Zero",
+      "niche": "Action / RPG",
+      "url": "https://store.steampowered.com/app/4115450/"
+    },
+    {
+      "rank": 79,
+      "appid": 1326470,
+      "last_week_rank": 160,
+      "peak_in_game": 31683,
+      "name": "Sons Of The Forest",
+      "niche": "Action / Adventure",
+      "url": "https://store.steampowered.com/app/1326470/"
+    },
+    {
+      "rank": 22,
+      "appid": 4348910,
+      "last_week_rank": -1,
+      "peak_in_game": 156413,
+      "name": "Probably Stolen - Cyberpunk Shopkeeper Sim",
+      "niche": "Indie / RPG",
+      "url": "https://store.steampowered.com/app/4348910/"
+    }
+  ]
+}

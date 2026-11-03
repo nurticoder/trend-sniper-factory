@@ -131,7 +131,13 @@ def create_app(db_path: Path | None = None):
 
     @app.get('/', include_in_schema=False)
     def index():
+        return FileResponse(STATIC / 'factory.html')
+
+    @app.get('/studio', include_in_schema=False)
+    def studio():
         return FileResponse(STATIC / 'index.html')
 
     app.mount('/static', StaticFiles(directory=STATIC), name='static')
+    from .factory import install
+    install(app, store)
     return app

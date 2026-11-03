@@ -19,16 +19,11 @@ Open **http://127.0.0.1:8765**. After installation, macOS users can double-click
 
 ## What works today
 
-- Responsive control-room board and searchable opportunity library.
-- Create/edit/archive topics with a niche, hypothesis, reference link and dated manual evidence.
-- Multiple original ideas per opportunity; editable hooks, payoffs, scripts, storyboards and audio cue sheets.
-- Editorial stages: Idea → Writing → Script ready. Readiness requires a complete brief and never approves publication.
-- Saved script history, stale-edit conflict detection, unsaved-change protection and JSON brief export.
-- Local SQLite persistence across browser reloads and app restarts.
-- Honest disconnected states for discovery, AI scripts, YouTube and analytics.
-- The existing original Python/FFmpeg renderer remains available through its CLI, separate from this dashboard.
+The homepage opens with three Steam chart observations. Each card shows its game, genre, peak player count, chart movement and source date. The app ships a real November 2 snapshot, refreshes an older snapshot on open and offers **Scan again**. It retains the last dated scan when Steam is unavailable. Recommendations reflect Steam chart activity. YouTube audience demand and Roblox coverage are outside this first feed.
 
-**Automatic discovery/analysis, model-generated scripts, media/sound selection, dashboard render jobs, OAuth publishing and analytics are not implemented yet.** Manual briefs are labeled manual. The included pool-puzzle video is a preserved technical fixture, not proof of audience demand.
+Choose **Produce Short** to create a 14-second original chart reveal or animated comeback with synthesized sound, timed captions, title and description. A local worker renders in the background and stores its status alongside the workspace. Repeat clicks reuse the same job. Interrupted jobs can be retried after restart. Run one server per database. Preview the MP4 and download it or its metadata under **Your productions**.
+
+The previous manual workspace is accessible under **The control room**. Publishing still requires a separate reviewed workflow.
 
 ## The essential platform
 

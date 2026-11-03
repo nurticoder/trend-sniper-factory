@@ -126,7 +126,7 @@ def srt_time(seconds):
     return f"{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}"
 
 
-def render(topic, out: Path, fps=24):
+def render(topic, out: Path, fps=24, draw_frame=frame):
     if out.exists() and any(out.iterdir()):
         raise ValueError("Output folder must be empty; choose a new folder")
     out.mkdir(parents=True, exist_ok=True)
@@ -149,7 +149,7 @@ def render(topic, out: Path, fps=24):
                     captions.append(f"{idx+1}\n{srt_time(elapsed)} --> {srt_time(end)}\n{scene['heading']}\n{scene['caption']}\n")
                     while global_frame / fps < end - 1e-8:
                         t = global_frame / fps
-                        im = frame(topic, idx, t-elapsed, t, duration)
+                        im = draw_frame(topic, idx, t-elapsed, t, duration)
                         if idx == 0 and t == 0:
                             im.save(out / "poster.png")
                         proc.stdin.write(im.tobytes())
