@@ -12,7 +12,7 @@ def card_is_letter(card):
     return card['id'].endswith('/letters')
 
 
-def recipe(c):
+def legacy_recipe(c):
     category=c['category']
     if card_is_letter(c):
         return 'Later-life letters', 'Original fiction for older viewers. Family-story demand is an adjacent signal.'
@@ -27,17 +27,17 @@ def recipe(c):
     return 'Countdown', 'A visual countdown of the observed uploads by recorded views.'
 
 
+def recipe(c):
+    if c['category']=='Gaming':
+        return 'Gaming guide', 'An original mechanic explanation or strategy within this game niche. Draft facts and visuals need review.'
+    return 'Topic explainer', 'An original explanation within this niche. Draft facts and visuals need review.'
+
+
 def eligible(cards):
     results=[]
     for card in cards:
         kind,pitch=recipe(card)
-        if kind=='Countdown' and sum(v['views'] is not None for v in card['examples'])<2:
-            continue
         results.append(dict(card,format=kind,pitch=pitch))
-        if card['category']=='Drama' and not card_is_letter(card):
-            letter=dict(card,id=card['id']+'/letters',name='Later-life letters')
-            label,description=recipe(letter)
-            results.append(dict(letter,format=label,pitch=description))
     return sorted(results,key=lambda c:c.get('daily_gain',c['pace']) or 0,reverse=True)
 
 
@@ -74,8 +74,15 @@ def fiction(kind,subject):
     return scripts[kind],'Built-in original story'
 
 
-def build(card):
-    kind,pitch=recipe(card)
+def build(card, *, analytics=False):
+    if not analytics:
+        from ..production.content import develop
+        return develop(card)
+    return legacy_build({**card,'category':'News' if card['category']=='News' else 'Analytics'})
+
+
+def legacy_build(card):
+    kind,pitch=legacy_recipe(card)
     items=card['examples']
     if kind in ('Countdown','News desk'):
         news=kind=='News desk'

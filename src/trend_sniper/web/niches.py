@@ -4,6 +4,7 @@ import sqlite3
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from threading import Lock
+from typing import Literal
 
 from fastapi import HTTPException, Query
 
@@ -81,7 +82,8 @@ def install(app, store):
     def selected():
         with store.connection() as db:
             row = db.execute('SELECT snapshot FROM chosen_niche WHERE slot=1').fetchone()
-        return json.loads(row[0]) if row else None
+        # Preserve frozen discovery evidence but refresh obsolete production labels.
+        return eligible([json.loads(row[0])])[0] if row else None
 
     @app.post('/api/niche-selection')
     def select(key:str):
@@ -94,11 +96,11 @@ def install(app, store):
 
 
     @app.post('/api/niche-production', status_code=202)
-    def produce_selected(key:str):
+    def produce_selected(key:str, production_format:Literal["content","analytics"]="content"):
         card = selected()
         if not card or card['id'] != key or not eligible([card]):
             raise HTTPException(409,'Select this format before production.')
-        return app.state.enqueue(edition_key(card),{'title':card['name'],'recipe_card':card})
+        return app.state.enqueue('content-v3/'+production_format+'/'+edition_key(card),{'title':card['name'],'recipe_card':card,'production_options':{'production_format':production_format}})
 
 
     @app.get('/api/daily-preview')

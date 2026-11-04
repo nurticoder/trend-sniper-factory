@@ -52,7 +52,7 @@ class DailyPreviews:
                     (day, signature),
                 ).fetchone():
                     return
-            job = enqueue(signature, {"title": card["name"], "recipe_card": card})
+            job = enqueue('content-v3/content/'+signature, {"title": card["name"], "recipe_card": card})
             with self.store.connection() as db:
                 db.execute(
                     "INSERT INTO daily_previews VALUES (?,?,?)",

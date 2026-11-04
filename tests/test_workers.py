@@ -18,15 +18,15 @@ from trend_sniper.production.stories import story_pool
 from trend_sniper.queue import snapshot
 from trend_sniper.web.app import create_app
 from trend_sniper.web.discovery import SNAPSHOT
-from trend_sniper.web.formats import build, eligible
+from trend_sniper.web.formats import legacy_build as build, legacy_recipe
 from trend_sniper.web.store import Store
 
 
 def sample(kind="Countdown"):
     return next(
         c
-        for c in eligible(json.loads(SNAPSHOT.read_text())["cards"])
-        if c["format"] == kind
+        for c in json.loads(SNAPSHOT.read_text())["cards"]
+        if legacy_recipe(c)[0] == kind
     )
 
 
@@ -34,7 +34,7 @@ class WorkerChecks(unittest.TestCase):
     def test_factual_drafts_keep_sources_and_winner_is_actual_compiler_input(self):
         for kind in ("Countdown", "News desk"):
             card = sample(kind)
-            script, report = write_and_select(card, build(card))
+            script, report = write_and_select(card, build(card), analytics=True)
             self.assertEqual(len(report["drafts"]), 100)
             winner = max(report["drafts"], key=lambda d: d["assessment"]["score"])
             self.assertEqual(winner["id"], report["winner"])

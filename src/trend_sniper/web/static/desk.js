@@ -2,7 +2,7 @@ import {decisions} from './workers.js?v=narration1';
 const byId = id => document.getElementById(id);
 const node = (tag,text='',className='') => Object.assign(document.createElement(tag),{textContent:text,className});
 const link = (text,url) => Object.assign(node('a',text),{href:url});
-const names = {queued:'Waiting',running:'In production',ready:'Ready to review',failed:'Needs attention',cancelled:'Stopped'};
+const names = {queued:'Waiting',running:'In production',ready:'Ready to review',planned:'Plan ready',failed:'Needs attention',cancelled:'Stopped'};
 const phases = ['Sources','Scripts','Voice','Materials','Covers','Assembly','Review'];
 const phaseFor = stage => {
   if(/Private preview/.test(stage))return 6;
@@ -29,7 +29,7 @@ function applyFilter(){
   for(const row of rows){
     const box=byId('jobs').querySelector('[data-job="'+row.id+'"]');
     const match=filter==='all' || (filter==='active' && ['queued','running'].includes(row.status)) ||
-      (filter==='ready' && row.status==='ready') || (filter==='attention' && ['failed','cancelled'].includes(row.status) && !row.retry_id);
+      (filter==='ready' && ['ready','planned'].includes(row.status)) || (filter==='attention' && ['failed','cancelled'].includes(row.status) && !row.retry_id);
     box.hidden=!match || !(row.title+' '+row.format).toLowerCase().includes(query);
     if(!box.hidden)visible++;
   }
@@ -86,7 +86,9 @@ function episode(job){
   const main=node('div','','episode-main');
   const content=node('div','','episode-content');
   content.append(node('p',date(job.created_at),'episode-date'));
-  if(job.status==='ready'){
+  if(job.status==='planned'){
+    content.append(node('h4','Topic plan ready'),node('p','Draft narration and visual briefs require fact and footage review. No video rendered.'),link('Inspect reusable plan','/api/productions/'+job.id+'/content-plan.json'));
+  }else if(job.status==='ready'){
     const base='/api/productions/'+job.id+'/';
     const video=Object.assign(node('video'),{controls:true,preload:'none',src:base+'short.mp4'});
     if(job.has_report)video.poster=base+'cover.jpg';

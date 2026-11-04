@@ -16,7 +16,14 @@ from .release import proposal
 
 
 def run_recipe(card, folder, inputs, stage, options=None):
-    """Store diagnostic outputs separately until the full private preview succeeds."""
+    """Develop a topic plan by default; render only explicitly selected reporting formats."""
+    if (options or {}).get('production_format','content') != 'analytics':
+        stage('Writing an original topic story and visual plan')
+        topic=build(card)
+        folder.mkdir(parents=True,exist_ok=True)
+        write_json(folder/'content-plan.json',topic)
+        write_json(folder/'script.json',topic)
+        return topic
     started = monotonic()
     audit = folder.with_name(folder.name + "-work")
     audit.mkdir(parents=True, exist_ok=True)
@@ -32,9 +39,9 @@ def run_recipe(card, folder, inputs, stage, options=None):
     mark("Collecting source facts")
     write_json(audit / "observation.json", card)
     mark("Writing and comparing scripts")
-    topic = build(card)
+    topic = build(card, analytics=True)
     if topic["format"] in {"Countdown", "News desk"}:
-        topic, editor = write_and_select(card, topic)
+        topic, editor = write_and_select(card, topic, analytics=True)
     else:
         from .stories import story_pool
 
