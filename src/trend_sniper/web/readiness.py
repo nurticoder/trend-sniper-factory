@@ -7,6 +7,7 @@ from urllib.request import urlopen
 
 import imageio_ffmpeg
 
+from ..production.narration import availability
 from ..production.stories import MODEL
 
 
@@ -77,10 +78,7 @@ def inspect(folder):
             "available": False,
             "detail": "Live analytics ingestion is not connected.",
         },
-        "narration": {
-            "available": False,
-            "detail": "Current previews use captions and timed music. Spoken narration is not connected.",
-        },
+        "narration": availability(folder),
     }
 
 

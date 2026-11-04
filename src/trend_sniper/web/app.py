@@ -142,6 +142,8 @@ def create_app(db_path: Path | None = None):
         return RedirectResponse('/#control', status_code=303)
 
     app.mount('/static', StaticFiles(directory=STATIC), name='static')
+    from .voice import install as install_voice
+    install_voice(app, store)
     from .factory import install
     install(app, store)
     from .niches import install as install_niches

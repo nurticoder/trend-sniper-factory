@@ -1,14 +1,15 @@
-import {decisions} from './workers.js?v=operations1';
+import {decisions} from './workers.js?v=narration1';
 const byId = id => document.getElementById(id);
 const node = (tag,text='',className='') => Object.assign(document.createElement(tag),{textContent:text,className});
 const link = (text,url) => Object.assign(node('a',text),{href:url});
 const names = {queued:'Waiting',running:'In production',ready:'Ready to review',failed:'Needs attention',cancelled:'Stopped'};
-const phases = ['Sources','Scripts','Materials','Covers','Assembly','Review'];
+const phases = ['Sources','Scripts','Voice','Materials','Covers','Assembly','Review'];
 const phaseFor = stage => {
-  if(/Private preview/.test(stage))return 5;
-  if(/Planning release|Compiling/.test(stage))return 4;
-  if(/covers/.test(stage))return 3;
-  if(/materials/.test(stage))return 2;
+  if(/Private preview/.test(stage))return 6;
+  if(/Planning release|Compiling/.test(stage))return 5;
+  if(/covers/.test(stage))return 4;
+  if(/materials/.test(stage))return 3;
+  if(/narration/.test(stage))return 2;
   if(/scripts/.test(stage))return 1;
   return 0;
 };
@@ -160,7 +161,7 @@ async function services(){
       ['Media search',data.commons.enabled?'Enabled':'Disabled',data.commons.detail],
       ['Cleared library',data.library.entries+' catalog entries',data.library.error||data.library.detail],
       ['YouTube',data.youtube.channel?'Saved connection':'Not connected',data.youtube.detail],
-      ['Voiceover','Not connected',data.narration.detail],['Analytics','Not connected',data.analytics.detail]];
+      ['Voiceover',data.narration.available?'Local voice ready':'Captions fallback',data.narration.detail],['Analytics','Not connected',data.analytics.detail]];
     byId('service-grid').replaceChildren(...items.map(([name,state,detail])=>{
       const card=node('article');card.append(node('small',name),node('h3',state),node('p',detail));return card;
     }));
@@ -191,3 +192,19 @@ for(const button of byId('job-filters').querySelectorAll('button'))button.onclic
   for(const item of byId('job-filters').querySelectorAll('button'))item.setAttribute('aria-pressed',String(item===button));
   applyFilter();
 };
+
+async function voicePreference(){
+  try{
+    const data=await request('/api/production-preferences');
+    byId('voice-mode').value=data.narration;byId('voice-mode').disabled=false;
+    byId('voice-status').textContent='Saved with each new job. Existing previews and retry settings stay unchanged.';
+  }catch(error){byId('voice-status').textContent=error.message;}
+}
+byId('voice-mode').onchange=async()=>{
+  const input=byId('voice-mode');input.disabled=true;
+  try{
+    await request('/api/production-preferences','PUT',{narration:input.value});
+    byId('voice-status').textContent=input.value==='required'?'New jobs stop if speech is unavailable.':'Saved for new jobs. Automatic mode reports any fallback in the preview.';
+  }catch(error){byId('voice-status').textContent=error.message;}finally{input.disabled=false;}
+};
+voicePreference();

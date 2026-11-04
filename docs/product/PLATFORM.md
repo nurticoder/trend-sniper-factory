@@ -104,3 +104,8 @@ Implemented in v0.2 on `feat/control-room`: the local browser board/library, opp
 ## Production desk milestone — November 2026
 
 The historical milestone notes above describe their original delivery, not the current capability set. Discovery formats now connect to local production, script/cover judging, media selection, private preview and reviewed OAuth scheduling. The production desk adds a persistent queue, source-frozen retry attempts, cancellation between stages, dated activity and honest provider readiness. The original manual brief workspace remains available as saved briefs. See [OPERATING.md](OPERATING.md) for current behavior and limits. Next prioritize a licensed local voiceover provider and richer source-grounded scripts before scaling output. Full analytics ingestion and live-channel upload verification remain outstanding.
+
+
+## Local narration milestone — November 2026
+
+Optional pinned Piper speech now runs inside niche production jobs. The worker measures utterances, adjusts scene/media/caption timing and ducks the music bed. Preference, fallback, model provenance and voice-only review are exposed in the platform. The independent legacy chart renderer stays unchanged. The next production-quality task is deeper source-grounded scripts and better matching of cleared visual material; live OAuth and analytics verification remain outstanding.

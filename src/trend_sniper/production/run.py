@@ -11,10 +11,11 @@ from . import commons
 from .covers import cover_set
 from .editor import write_and_select
 from .materials import library, plan, public_record, soundtrack, visual_renderer
+from .narration import mix, prepare
 from .release import proposal
 
 
-def run_recipe(card, folder, inputs, stage):
+def run_recipe(card, folder, inputs, stage, options=None):
     """Store diagnostic outputs separately until the full private preview succeeds."""
     started = monotonic()
     audit = folder.with_name(folder.name + "-work")
@@ -40,6 +41,15 @@ def run_recipe(card, folder, inputs, stage):
         topic, editor = story_pool(topic, card)
     write_json(audit / "script-options.json", editor)
 
+    mark("Preparing narration")
+    topic, narration = prepare(
+        topic, audit, inputs, (options or {}).get("narration", "auto"), mark
+    )
+    if narration["state"] == "ready":
+        topic["description"] += (
+            "\n\nSynthetic narration: Piper LJ Speech. Model source: "
+            + narration["source"]
+        )
     mark("Selecting scene materials")
     assets, skipped = library(inputs / "media-library")
     retrieval = []
@@ -94,7 +104,14 @@ def run_recipe(card, folder, inputs, stage):
         return opening if elapsed < 0.5 else draw(t, i, local, elapsed, duration)
 
     mark("Compiling and decoding MP4")
-    render(topic, folder, draw_frame=with_opening, make_audio=soundtrack(materials))
+    bed = soundtrack(materials)
+
+    def audio(path, edit):
+        bed(path, edit)
+        if narration["state"] == "ready":
+            mix(path, audit / "narration.wav", narration)
+
+    render(topic, folder, draw_frame=with_opening, make_audio=audio)
     mark("Planning release")
     report = {
         "schema_version": 1,
@@ -109,6 +126,7 @@ def run_recipe(card, folder, inputs, stage):
             if d["id"] == editor["winner"]
         ),
         "materials": public_record(materials),
+        "narration": narration,
         "rejected_assets": skipped,
         "online_search": retrieval,
         "covers": covers,
@@ -120,10 +138,13 @@ def run_recipe(card, folder, inputs, stage):
     manifest = json.loads((folder / "manifest.json").read_text())
     manifest.update(
         cover_sha256=digest(audit / "cover.jpg"),
+        narration=narration,
         assets=public_record(used),
         visuals="Original motion graphics plus selected cleared media",
         rights="See per-asset source, evidence, license, credit and hash.",
-        audio="Original synthesized soundtrack plus any credited music and cues",
+        audio="Original synthesized soundtrack, cleared cues and local narration"
+        if narration["state"] == "ready"
+        else "Original synthesized soundtrack plus any credited music and cues",
     )
     write_json(folder / "manifest.json", manifest)
     write_json(folder / "production-report.json", report)
@@ -134,4 +155,7 @@ def run_recipe(card, folder, inputs, stage):
         "observation.json",
     ):
         (audit / name).replace(folder / name)
+    write_json(folder / "narration.json", narration)
+    if narration["state"] == "ready":
+        (audit / "narration.wav").replace(folder / "narration.wav")
     return topic

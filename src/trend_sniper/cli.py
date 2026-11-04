@@ -9,6 +9,8 @@ from .queue import approve, enqueue
 def main():
     parser = argparse.ArgumentParser(description="Trend Sniper Factory: local control room and rendering tools.")
     sub = parser.add_subparsers(dest="command", required=True)
+    p = sub.add_parser("install-voice", help="Download the pinned licensed English narration model")
+    p.add_argument("--data-dir", type=Path, default=Path("local-data"))
     p = sub.add_parser("connect-youtube", help="Connect the owner channel for reviewed releases")
     p.add_argument("--client",type=Path,required=True)
     p.add_argument("--auth-dir",type=Path,default=Path("local-data/youtube"))
@@ -31,7 +33,10 @@ def main():
     p.add_argument("--queue", type=Path, default=Path("queue.json"))
     args = parser.parse_args()
     try:
-        if args.command == "connect-youtube":
+        if args.command == "install-voice":
+            from .production.voice_install import install
+            print(install(args.data_dir))
+        elif args.command == "connect-youtube":
             from .production.publisher import connect
             try:
                 print(connect(args.client,args.auth_dir)["name"])

@@ -151,7 +151,11 @@ def install(app, store):
             from ..production.run import run_recipe
 
             return run_recipe(
-                script["recipe_card"], root / job, store.path.parent, progress
+                script["recipe_card"],
+                root / job,
+                store.path.parent,
+                progress,
+                script.get("production_options", {"narration": "off"}),
             )
         progress("Compiling and decoding MP4")
         render(script, root / job, draw_frame=frame)
@@ -159,7 +163,12 @@ def install(app, store):
 
     queue = ProductionQueue(store, run)
     app.state.production_queue = queue
-    enqueue = queue.enqueue
+
+    def enqueue(key, script):
+        return queue.enqueue(
+            key, {**script, "production_options": app.state.production_preferences()}
+        )
+
     # Publish transport has its own executor so a long preview cannot consume its release window.
     publisher = ThreadPoolExecutor(max_workers=1, thread_name_prefix="publisher")
     app.state.publisher_executor = publisher
@@ -254,6 +263,8 @@ def install(app, store):
             "cover.jpg",
             "cover-options.jpg",
             "observation.json",
+            "narration.wav",
+            "narration.json",
         }:
             raise HTTPException(404)
         with store.connection() as db:

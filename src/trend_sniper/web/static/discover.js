@@ -96,7 +96,7 @@ async function watch(key){
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
     if(job.has_report){
       video.poster='/api/productions/'+key+'/cover.jpg';
-      const {decisions}=await import('./workers.js?v=operations1');box.append(decisions(job));
+      const {decisions}=await import('./workers.js?v=narration1');box.append(decisions(job));
     }
   }else{
     box.append(el('p',job.error || (job.status==='running' && job.stage?job.stage:'Factory status · '+job.status)));

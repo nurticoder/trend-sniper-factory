@@ -47,13 +47,15 @@ function reviewForm(job,info,release,meta){
   return form;
 }
 
+const seconds=value=>String(Math.round(value*100)/100);
 function storyboard(script,report){
   const section=node('details','');section.className='storyboard';
-  section.append(node('summary','Selected edit · '+script.scenes.reduce((n,shot)=>n+shot.seconds,0)+' seconds'));
+  section.append(node('summary','Selected edit · '+seconds(script.scenes.reduce((n,shot)=>n+shot.seconds,0))+' seconds'));
   const list=node('ol','');let at=0;
   for(const [index,shot] of script.scenes.entries()){
     const row=node('li','');const material=report.materials.scenes[index];
-    row.append(node('small',at+'–'+(at+shot.seconds)+'s / '+shot.heading),node('strong',shot.value),node('p',shot.caption));
+    row.append(node('small',seconds(at)+'–'+seconds(at+shot.seconds)+'s / '+shot.heading),node('strong',shot.value),node('p',shot.caption));
+    if(shot.narration)row.append(node('p','Spoken · '+shot.narration));
     row.append(node('p','Sound · '+(material?.effect?.description || material?.cue || 'Original score')));
     if(shot.source){
       try{
@@ -66,6 +68,18 @@ function storyboard(script,report){
     list.append(row);at+=shot.seconds;
   }
   section.append(list);return section;
+}
+function voiceReport(report,base){
+  const box=node('div','');box.className='narration-report';
+  const voice=report.narration;
+  box.append(node('h3','Narration'));
+  if(!voice){box.append(node('p','This earlier preview has no voiceover record.'));return box;}
+  if(voice.state!=='ready'){box.append(node('p',voice.reason));return box;}
+  box.append(node('p',voice.voice+' · '+voice.engine+' · music lowered during speech'),node('p',voice.timing));
+  const audio=document.createElement('audio');audio.controls=true;audio.preload='metadata';audio.src=base+'narration.wav';
+  audio.setAttribute('aria-label','Narration without background music');
+  box.append(audio,anchor('Download narration',base+'narration.wav'),anchor('Voice provenance and timing',base+'narration.json'));
+  return box;
 }
 function draftComparison(pool){
   const box=node('details','');box.className='draft-comparison';
@@ -103,11 +117,11 @@ export function decisions(job){
       const a=report.script_assessment;
       const sceneList=node('ol','');
       for(const shot of report.materials.scenes)sceneList.append(node('li',
-        (shot.visual?shot.visual.description+' · '+shot.visual.license:shot.visual_fallback)+' / '+shot.cue+' / '+shot.seconds+'s'));
+        (shot.visual?shot.visual.description+' · '+shot.visual.license:shot.visual_fallback)+' / '+shot.cue+' / '+seconds(shot.seconds)+'s'));
       body.replaceChildren(node('h3','Script selection'),node('p',report.script_count+' complete cuts · selected #'+report.winning_script+
-        (a.score!=null?' · editorial score '+a.score+'/100':'')),node('p',report.writer),
+        (a.score!=null?' · editorial score '+a.score+'/100'+(report.narration?.state==='ready'?' before voice timing':''):'')),node('p',report.writer),
         anchor('Inspect all drafts and scores',base+'script-options.json'),
-        draftComparison(pool),storyboard(script,report),
+        draftComparison(pool),storyboard(script,report),voiceReport(report,base),
         node('h3','Scene materials'),sceneList,
         node('p','Music · '+(report.materials.music?.description || report.materials.music_fallback)),
         node('p',report.rejected_assets.length+' library entries rejected · '+report.online_search.reduce((n,s)=>n+(s.eligible_files||0),0)+' eligible files found online'),anchor('Open research packet',base+'observation.json'),

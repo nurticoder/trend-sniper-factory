@@ -1,5 +1,5 @@
 import {openSteam} from './radar.js';
-import {jobs,stopDesk} from './desk.js?v=operations1';
+import {jobs,stopDesk} from './desk.js?v=narration1';
 
 const panels = [...document.querySelectorAll('[data-panel]')];
 const navigation = document.querySelector('nav[aria-label="Control center"]');

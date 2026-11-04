@@ -27,13 +27,22 @@ Open **http://127.0.0.1:8765**. After installation, macOS users can double-click
 
 The homepage is a scrolling niche explorer built from dated public YouTube channel observations. Picks span gaming, education, news, stories and other subjects. Each shows its production format, reference images, original video links, source date and measured lifetime pace or change between observations. Discovery covers a seeded channel set. An observed audience for reference material is not proof of demand for the adapted format. Scans refresh daily while the app runs.
 
-Choose a niche, then **Produce a Short**. Rankings and news compare up to 100 source-constrained cuts. Fiction uses an optional local model with an honest built-in fallback. The factory matches cleared media, generates and selects among twelve covers, compiles original graphics with captions and timed sound, verifies the MP4, and proposes a release time. A fresh install needs no paid provider. Spoken narration is not yet connected.
+Choose a niche, then **Produce a Short**. Rankings and news compare up to 100 source-constrained cuts. Fiction uses an optional local model with an honest built-in fallback. The factory matches cleared media, generates and selects among twelve covers, compiles original graphics with captions and timed sound, verifies the MP4, and proposes a release time. A fresh install needs no paid provider. Optional local Piper narration measures speech first, extends scene timing and lowers music during speech. It is installed and verified on the development machine; fresh installations can add it with the setup below.
 
 **The control room** is the production desk: pause or resume the queue, stop jobs, retry from saved inputs, inspect activity/runtime/spend, filter episodes and review completed previews. The worker report contains script comparisons, a timed storyboard, material decisions, covers and release details. Waiting jobs survive a restart. Interrupted jobs keep their inputs for an explicit retry. Run one local server per database.
 
 Daily private previews are opt-in and skip reused source sets. Scheduling requires owner OAuth and review of the exact finished artifacts, audience and disclosure. The transport is implemented but has only been tested with simulated uploads. Live analytics ingestion is not connected. A saved credential is shown separately from verified access.
 
 The Steam chart renderer remains available within the same homepage at `/#steam`. It produces original chart graphics from dated Steam observations. Previous manual briefs are preserved inside the control room.
+
+## Optional offline voice
+
+```sh
+pip install -e ".[voice]"
+trend-sniper install-voice
+```
+
+This explicit setup downloads a checksum-pinned English voice (about 64 MB) from the upstream model repository. No model downloads occur during production. In Control room, choose **Local voice when available**, **Require local voice**, or **Captions and music only** for new niche previews. Retry attempts preserve their original preference. An unavailable/failed provider is recorded as a fallback, or fails the job when voice is required. [Voice operation and verification](docs/local-narration-validation.md).
 
 ## The essential platform
 
@@ -72,7 +81,7 @@ For installation, commands, output format, batch generation and local review/que
 
 Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-Current milestone is the production desk on `feat/factory-operations`: durable queue controls, restart recovery, linked retry attempts, readable edit review and service readiness. Live channel authorization and audience measurement remain account-dependent.
+Current milestone is local narration on `feat/local-narration`: pinned voice setup, speech-aware scene timing, background ducking and reviewable speech provenance, on top of the durable production desk. Live channel authorization and audience measurement remain account-dependent.
 
 The control room now supports pause/resume, cancellation, retries from saved sources, activity history and searchable previews. The worker report shows leading script candidates and a timed storyboard with source/audio decisions. [Operating guide](docs/product/OPERATING.md) · [Verification](docs/factory-operations-validation.md).
 
