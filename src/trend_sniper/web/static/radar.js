@@ -1,3 +1,4 @@
+import {decisions} from './workers.js';
 const byId = id => document.getElementById(id);
 function element(tag,text) {
   const node=document.createElement(tag);
@@ -33,17 +34,28 @@ let timer;
 async function jobs(){
   clearTimeout(timer);
   const list=await request('/api/productions');
-  byId('jobs').replaceChildren(...list.map(j=>{
+  const container=byId('jobs');
+  // Keep completed previews and review forms mounted while the queue updates.
+  if(list.length && !container.children.length)container.textContent='';
+  list.forEach((j,index)=>{
+    const previous=container.querySelector('[data-job="'+j.id+'"]');
+    const signature=JSON.stringify([j.status,j.stage,j.error,j.has_report]);
+    if(previous?.dataset.signature===signature)return;
     const box=element('article','');box.className='job';
-    box.append(element('h3',j.title),element('p',j.status==='failed'?j.error:j.status));
+    box.append(element('h3',j.title),element('p',j.status==='failed'?j.error:(j.status==='running' && j.stage?j.stage:j.status)));
     if(j.status==='ready'){
       const base='/api/productions/'+j.id+'/';
       const video=element('video','');video.controls=true;video.preload='metadata';video.src=base+'short.mp4';
       const download=link('Download MP4',video.src);download.download='short.mp4';
+      if(j.has_report)video.poster=base+'cover.jpg';
       box.append(video,download,link('Title & description',base+'metadata.txt'));
+      if(j.has_report)box.append(decisions(j));
     }
-    return box;
-  }));
+    box.dataset.job=j.id;
+    box.dataset.signature=signature;
+    if(previous)previous.replaceWith(box);
+    else container.insertBefore(box,container.children[index] || null);
+  });
   if(!list.length)byId('jobs').textContent='Choose a recommendation above to produce your first Short.';
   if(list.some(j=>['queued','running'].includes(j.status)))timer=setTimeout(()=>jobs().catch(report),1800);
 }

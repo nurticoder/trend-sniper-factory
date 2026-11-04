@@ -73,6 +73,7 @@ def install(app,store):
     cache = root/'radar.json'
     worker = ThreadPoolExecutor(max_workers=1)
     with store.connection() as db:
+        db.execute('CREATE TABLE IF NOT EXISTS production_steps(id TEXT PRIMARY KEY, stage TEXT NOT NULL)')
         db.execute('CREATE TABLE IF NOT EXISTS productions(id TEXT PRIMARY KEY,selection TEXT UNIQUE,script TEXT,status TEXT,error TEXT)')
         db.execute("UPDATE productions SET status='failed',error='Interrupted. Choose Produce to retry.' WHERE status IN ('queued','running')")
 
@@ -95,13 +96,17 @@ def install(app,store):
         try:
             with store.connection() as db:
                 db.execute("UPDATE productions SET status='running' WHERE id=?",(job,))
-            draw = frame
             if 'recipe_card' in script:
-                from .formats import build, frame as draw
-                script = build(script['recipe_card'])
+                from ..production.run import run_recipe
+
+                def progress(name):
+                    with store.connection() as db:
+                        db.execute('INSERT OR REPLACE INTO production_steps VALUES (?,?)',(job,name))
+                script = run_recipe(script['recipe_card'],root/job,store.path.parent,progress)
                 with store.connection() as db:
                     db.execute('UPDATE productions SET script=? WHERE id=?',(json.dumps(script),job))
-            render(script,root/job,draw_frame=draw)
+            else:
+                render(script,root/job,draw_frame=frame)
             with store.connection() as db:
                 db.execute("UPDATE productions SET status='ready' WHERE id=?",(job,))
         except Exception as exc:
@@ -131,20 +136,27 @@ def install(app,store):
         worker.submit(run,job,script)
         return {'id':job}
 
+    from .releases import install as install_releases
+    install_releases(app,store,root,worker)
     app.state.enqueue = enqueue
 
     @app.get('/api/productions')
     def jobs():
         with store.connection() as db:
-            rows = db.execute('SELECT id,script,status,error FROM productions ORDER BY rowid DESC').fetchall()
-        return [dict(id=j,title=json.loads(b)['title'],status=s,error=e) for j,b,s,e in rows]
+            rows = db.execute('SELECT p.id,p.script,p.status,p.error,s.stage FROM productions p LEFT JOIN production_steps s ON p.id=s.id ORDER BY p.rowid DESC').fetchall()
+        return [dict(id=j,title=json.loads(b)['title'],status=s,error=e,stage=stage,
+                     has_report=s=='ready' and (root/j/'production-report.json').is_file()) for j,b,s,e,stage in rows]
 
     @app.get('/api/productions/{job}/{asset}')
     def artifact(job:str,asset:str):
-        if asset not in {'short.mp4','metadata.txt','script.json'}:
+        if asset not in {'short.mp4','metadata.txt','script.json','production-report.json','script-options.json',
+                         'cover.jpg','cover-options.jpg','observation.json'}:
             raise HTTPException(404)
         with store.connection() as db:
             ready = db.execute("SELECT id FROM productions WHERE id=? AND status='ready'",(job,)).fetchone()
         if not ready:
             raise HTTPException(404)
-        return FileResponse(root/ready[0]/asset)
+        path=root/ready[0]/asset
+        if not path.is_file():
+            raise HTTPException(404,'This run has no such artifact')
+        return FileResponse(path)

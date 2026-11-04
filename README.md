@@ -6,6 +6,12 @@ The goal is a browser dashboard that runs the workflow without asking a developm
 
 ![Control room with an explicitly labeled local example](docs/images/control-room.png)
 
+## Production workers
+
+[Research and automation plan](docs/product/AUTOMATION.md) · [Worker operations, media licenses and release scheduling](docs/product/OPERATING.md)
+
+Choose a niche and produce a private preview. New discovery runs retain competing scripts, scene material decisions, twelve covers and a release-time proposal. The control room exposes the worker report. Daily previews and reviewed owner-channel scheduling are optional.
+
 ## Start the dashboard
 
 ```sh
@@ -38,7 +44,7 @@ The previous manual workspace is accessible under **The control room**. Publishi
 | Review & publishing | Check the exact output, audience and rights; privately upload and schedule approved work |
 | Results | Compare actual same-age performance and cost; feed evidence into the next idea |
 
-Read the [product direction and ordered build plan](docs/product/PLATFORM.md). First implementation slice: **a persistent control room and opportunity-to-script workflow**, before further video generation.
+Read the [product direction and ordered build plan](docs/product/PLATFORM.md). The implemented production slice is described in the [automation plan](docs/product/AUTOMATION.md).
 
 ## Current stack
 
@@ -54,7 +60,7 @@ App data is stored in ignored `local-data/control-room.sqlite3` relative to the 
 python -m unittest discover -s tests -v
 ```
 
-Nine tests cover real media roundtrip, persistence after a new app instance, evidence validation, archival behavior, script readiness, version history, stale edits, export, local-request boundaries and static files. Browser QA covers create/edit/save/reload, search, library navigation, version history and the actual downloaded JSON on mobile/desktop breakpoints. See [control-room verification](docs/control-room-validation.md).
+The automated suite covers real media roundtrip, persistence after a new app instance, evidence validation, archival behavior, script readiness, version history, stale edits, export, local-request boundaries and static files. Browser QA covers create/edit/save/reload, search, library navigation, version history and the actual downloaded JSON on mobile/desktop breakpoints. See [control-room verification](docs/control-room-validation.md).
 
 ## Existing renderer
 
@@ -64,7 +70,7 @@ For installation, commands, output format, batch generation and local review/que
 
 Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-Current milestone: the control room is implemented on `feat/control-room`. Next slice: evidence-backed opportunity analysis and provider adapters; no credentials are needed for manual work.
+Current milestone is the complete local worker run on `feat/production-workers`. Live channel authorization and audience measurement remain account-dependent.
 
 ## Rights, cost and honest scope
 

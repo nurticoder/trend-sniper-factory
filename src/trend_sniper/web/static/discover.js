@@ -24,6 +24,19 @@ function chosen(c){
     references(c));
   if(!c.format)return;
   const make=el('button','Produce a Short →');make.className='primary';box.append(make);
+  const daily=el('button','Daily previews');daily.disabled=true;box.append(daily);
+  let dailyKey=null;
+  function updateDaily(key){
+    dailyKey=key;
+    daily.textContent=key?'Stop daily previews':'Enable daily previews for this niche';
+    daily.title=key?'Active niche: '+key:'One new source set per day while the factory runs.';
+  }
+  api('/api/daily-preview').then(data=>{updateDaily(data.niche);daily.disabled=false;}).catch(e=>id('status').textContent=e.message);
+  daily.onclick=async()=>{
+    daily.disabled=true;
+    try{const data=await api('/api/daily-preview?key='+encodeURIComponent(dailyKey?'':c.id),{method:'POST'});updateDaily(data.niche);}
+    catch(e){id('status').textContent=e.message;}finally{daily.disabled=false;}
+  };
   make.onclick=async()=>{
     make.disabled=true;
     try{
@@ -80,8 +93,12 @@ async function watch(key){
   if(job.status==='ready'){
     const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
+    if(job.has_report){
+      video.poster='/api/productions/'+key+'/cover.jpg';
+      const {decisions}=await import('./workers.js');box.append(decisions(job));
+    }
   }else{
-    box.append(el('p',job.error || 'Factory status · '+job.status));
+    box.append(el('p',job.error || (job.status==='running' && job.stage?job.stage:'Factory status · '+job.status)));
     if(['queued','running'].includes(job.status))jobTimer=setTimeout(()=>watch(key).catch(e=>id('status').textContent=e.message),1800);
   }
 }

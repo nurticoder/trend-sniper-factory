@@ -126,7 +126,7 @@ def srt_time(seconds):
     return f"{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}"
 
 
-def render(topic, out: Path, fps=24, draw_frame=frame):
+def render(topic, out: Path, fps=24, draw_frame=frame, make_audio=sound):
     if out.exists() and any(out.iterdir()):
         raise ValueError("Output folder must be empty; choose a new folder")
     out.mkdir(parents=True, exist_ok=True)
@@ -134,7 +134,7 @@ def render(topic, out: Path, fps=24, draw_frame=frame):
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     duration = sum(s["seconds"] for s in topic["scenes"])
     audio = out / "soundtrack.wav"
-    sound(audio, topic)
+    make_audio(audio, topic)
     movie = out / "short.mp4"
     command = [ffmpeg, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(fps), "-i", "pipe:0", "-i", str(audio), "-c:v", "libx264", "-preset", "fast", "-crf", "21", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", "-shortest", str(movie)]
     captions, elapsed = [], 0.0
@@ -146,7 +146,8 @@ def render(topic, out: Path, fps=24, draw_frame=frame):
                 global_frame = 0
                 for idx, scene in enumerate(topic["scenes"]):
                     end = elapsed + scene["seconds"]
-                    captions.append(f"{idx+1}\n{srt_time(elapsed)} --> {srt_time(end)}\n{scene['heading']}\n{scene['caption']}\n")
+                    copy = '\n'.join(str(scene[k]) for k in ('heading','value','caption') if scene.get(k))
+                    captions.append(f"{idx+1}\n{srt_time(elapsed)} --> {srt_time(end)}\n{copy}\n")
                     while global_frame / fps < end - 1e-8:
                         t = global_frame / fps
                         im = draw_frame(topic, idx, t-elapsed, t, duration)

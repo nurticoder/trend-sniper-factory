@@ -19,3 +19,5 @@ A `TSF_FONT` override is the user's responsibility: use a font with explicit per
 ## Optional control-room dependencies
 
 FastAPI and Pydantic use MIT licenses; Uvicorn and Starlette use BSD-3-Clause licenses. Test-only HTTPX2 uses its installed upstream license (copied in `docs/licenses/httpx2-LICENSE.txt`). Direct dependency license texts are included in `docs/licenses/`. These packages are installed separately by pip; this repository does not vendor their source or executables. Transitive dependencies keep their own notices. The dashboard uses system fonts and original CSS/SVG assets; it loads no external font or CDN.
+
+The optional YouTube publisher installs Google's API client and OAuth helper separately through pip. Their upstream licenses are preserved in `docs/licenses/`. The online material collector uses the Wikimedia Commons API. Each accepted file retains a separate rights record and credit in the local production manifest. The repository distributes no Commons or user-library media.

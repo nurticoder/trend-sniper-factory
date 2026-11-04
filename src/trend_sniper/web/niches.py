@@ -1,16 +1,19 @@
 import asyncio
 import json
+import sqlite3
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from threading import Lock
 
 from fastapi import HTTPException, Query
 
+from ..production.daily import DailyPreviews, edition_key
 from .formats import eligible
 from .discovery import collect, SNAPSHOT
 
 
 def install(app, store):
+    automation = DailyPreviews(store)
     cache = store.path.with_suffix('.niches.json')
     gate = Lock()
     status = {'error': None, 'scanning': False}
@@ -41,6 +44,11 @@ def install(app, store):
             age = datetime.now(timezone.utc) - datetime.fromisoformat(read()['observed'])
             if age.total_seconds() >= 86400:
                 await asyncio.to_thread(refresh)
+            if automation.niche():
+                try:
+                    await asyncio.to_thread(automation.tick,eligible(read()['cards']),app.state.enqueue)
+                except (sqlite3.Error, OSError, ValueError) as error:
+                    status['error']=str(error)
             await asyncio.sleep(600)
 
     @asynccontextmanager
@@ -86,4 +94,17 @@ def install(app, store):
         card = selected()
         if not card or card['id'] != key or not eligible([card]):
             raise HTTPException(409,'Select this format before production.')
-        return app.state.enqueue('format/'+key+'/'+card['observed'],{'title':card['name'],'recipe_card':card})
+        return app.state.enqueue(edition_key(card),{'title':card['name'],'recipe_card':card})
+
+
+    @app.get('/api/daily-preview')
+    def daily_config():
+        return {'niche':automation.niche()}
+
+    @app.post('/api/daily-preview')
+    def daily_configure(key:str=''):
+        card=selected()
+        if key and (not card or card['id']!=key):
+            raise HTTPException(409,'Choose this niche first')
+        automation.set(key or None)
+        return {'niche':automation.niche()}
