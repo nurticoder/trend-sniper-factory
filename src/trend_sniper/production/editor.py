@@ -2,7 +2,6 @@
 
 import math
 
-from ..web.formats import recipe
 
 
 def research(card):
@@ -19,7 +18,7 @@ def research(card):
         "subject": card["name"],
         "channel": card["channel"],
         "observed": card["observed"],
-        "format": recipe(card)[0],
+        "format": "News desk" if card["category"] == "News" else "Countdown",
         "records": records,
     }
 
@@ -165,7 +164,9 @@ def evaluate(scenes, packet):
     }
 
 
-def write_and_select(card, base):
+def write_and_select(card, base, *, analytics=False):
+    if not analytics:
+        raise ValueError("Upload statistics require explicit analytics/reporting format")
     packet = research(card)
     drafts = []
     seen = set()

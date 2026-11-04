@@ -23,7 +23,9 @@ function chosen(c){
     el('p',c.pitch || 'Choose a current production pick below.'),
     references(c));
   if(!c.format)return;
-  const make=el('button','Produce a Short →');make.className='primary';box.append(make);
+  const mode=document.createElement('select');mode.setAttribute('aria-label','Production format');mode.add(new Option('Original topic content','content'));mode.add(new Option('Explicit analytics report','analytics'));box.append(mode);
+  const make=el('button','Develop topic plan →');make.className='primary';box.append(make);
+  mode.onchange=()=>make.textContent=mode.value==='content'?'Develop topic plan →':'Produce analytics report →';
   const daily=el('button','Daily previews');daily.disabled=true;box.append(daily);
   let dailyKey=null;
   function updateDaily(key){
@@ -40,7 +42,7 @@ function chosen(c){
   make.onclick=async()=>{
     make.disabled=true;
     try{
-      const job=await api('/api/niche-production?key='+encodeURIComponent(c.id),{method:'POST'});
+      const job=await api('/api/niche-production?key='+encodeURIComponent(c.id)+'&production_format='+mode.value,{method:'POST'});
       localStorage.setItem('activeProduction',job.id);
       await watch(job.id);
     }catch(e){id('status').textContent=e.message;}
@@ -91,7 +93,12 @@ async function watch(key){
   if(!job)return;
   if(job.retry_id){localStorage.setItem('activeProduction',job.retry_id);return watch(job.retry_id);}
   box.hidden=false;box.replaceChildren(el('small','PRODUCTION'),el('h2',job.title));
-  if(job.status==='ready'){
+  if(job.status==='planned'){
+    const plan=await api('/api/productions/'+key+'/content-plan.json');
+    box.append(el('strong','Draft plan · facts and footage need review'),el('p',plan.promise),el('p',plan.verification));
+    for(const scene of plan.scenes)box.append(el('p',scene.narration),el('p','Visual: '+scene.visual.subject+' · '+scene.visual.action+' · '+scene.visual.purpose));
+    const download=el('a','Download reusable plan');download.href='/api/productions/'+key+'/content-plan.json';box.append(download);
+  }else if(job.status==='ready'){
     const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
     if(job.has_report){

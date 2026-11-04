@@ -169,7 +169,7 @@ def install(app, store):
 
     def enqueue(key, script):
         return queue.enqueue(
-            key, {**script, "production_options": app.state.production_preferences()}
+            key, {**script, "production_options": {**app.state.production_preferences(), **script.get("production_options",{})}}
         )
 
     # Publish transport has its own executor so a long preview cannot consume its release window.
@@ -267,14 +267,16 @@ def install(app, store):
             "cover-options.jpg",
             "observation.json",
             "narration.wav",
-            "narration.json", "review.json", "brief.json", "captions.srt", "manifest.json",
+            "narration.json", "review.json", "brief.json", "captions.srt", "manifest.json", "content-plan.json",
         }:
             raise HTTPException(404)
         with store.connection() as db:
             ready = db.execute(
-                "SELECT id FROM productions WHERE id=? AND status='ready'", (job,)
+                "SELECT id,status FROM productions WHERE id=? AND status IN ('ready','planned')", (job,)
             ).fetchone()
         if not ready:
+            raise HTTPException(404)
+        if ready[1]=='planned' and asset not in {'content-plan.json','script.json'}:
             raise HTTPException(404)
         path = root / ready[0] / asset
         if not path.is_file():

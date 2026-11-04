@@ -261,14 +261,21 @@ class ProductionQueue:
                     ).fetchone()[0]
                     if cancelled:
                         raise Cancelled()
+                    state = "planned" if result.get("delivery") == "plan" else "ready"
                     db.execute(
-                        "UPDATE productions SET status='ready',script=? WHERE id=?",
-                        (json.dumps(result), job),
+                        "UPDATE productions SET status=?,script=? WHERE id=?",
+                        (state, json.dumps(result), job),
                     )
                     db.execute(
                         "UPDATE production_runs SET paid_api_usd=0 WHERE job=?", (job,)
                     )
-                    self.event(db, job, "Private preview ready")
+                    self.event(
+                        db,
+                        job,
+                        "Topic plan ready; facts and footage need review"
+                        if state == "planned"
+                        else "Private preview ready",
+                    )
             except Cancelled:
                 with self.store.connection() as db:
                     db.execute(
