@@ -109,3 +109,8 @@ The historical milestone notes above describe their original delivery, not the c
 ## Local narration milestone — November 2026
 
 Optional pinned Piper speech now runs inside niche production jobs. The worker measures utterances, adjusts scene/media/caption timing and ducks the music bed. Preference, fallback, model provenance and voice-only review are exposed in the platform. The independent legacy chart renderer stays unchanged. The next production-quality task is deeper source-grounded scripts and better matching of cleared visual material; live OAuth and analytics verification remain outstanding.
+
+
+## Footage-led explainer milestone
+
+Production studio now accepts a topic independently of discovery. The initial curated water-in-microgravity collection implements an original sourced explanation, explicit passage/shot contracts, multiple footage shots per passage, persistent voice-delivery auditions, measured speech timing, prominent smooth footage, phrase captions, original packaging and private review. Runtime scope is deliberately visible: subject writing and initial visual matches were authored/inspected for this pilot, not generalized autonomous research. Research, source footage, speech and prepared shots are reusable. See [pilot operating and validation notes](../footage-explainer-pilot.md).

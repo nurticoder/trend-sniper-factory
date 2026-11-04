@@ -60,6 +60,7 @@ def install(app, store):
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
+            await asyncio.to_thread(app.state.audition_executor.shutdown, wait=True)
             await asyncio.to_thread(app.state.production_queue.close)
             await asyncio.to_thread(app.state.publisher_executor.shutdown, wait=True)
     app.router.lifespan_context = lifespan

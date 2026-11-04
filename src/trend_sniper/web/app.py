@@ -150,4 +150,6 @@ def create_app(db_path: Path | None = None):
     install_niches(app, store)
     from .readiness import install as install_readiness
     install_readiness(app, store)
+    from .explainers import install as install_explainers
+    install_explainers(app, store)
     return app

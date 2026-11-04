@@ -6,6 +6,10 @@ The goal is a browser dashboard that runs the workflow without asking a developm
 
 ![Production desk with a completed local QA preview](docs/images/production-desk.jpg)
 
+## Footage-led explainer pilot
+
+Open **Production studio** for a sourced water-in-microgravity explainer. The normal app path includes a reusable brief, voice-delivery auditions, editable narration and shot decisions, licensed-source records, smooth prominent footage, measured speech, phrase captions and a private editorial review. This is one curated collection; unsupported topics and missing media are visible. Publishing is disabled for the pilot. [Workflow, validation and limitations](docs/footage-explainer-pilot.md).
+
 ## Production workers
 
 [Research and automation plan](docs/product/AUTOMATION.md) · [Worker operations, media licenses and release scheduling](docs/product/OPERATING.md)

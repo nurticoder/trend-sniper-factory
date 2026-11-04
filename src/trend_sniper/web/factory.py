@@ -147,6 +147,9 @@ def install(app, store):
         return result
 
     def run(job, script, progress):
+        if "explainer" in script:
+            from ..production.explainer import produce
+            return produce(script["explainer"], root/job, store.path.parent, progress)
         if "recipe_card" in script:
             from ..production.run import run_recipe
 
@@ -264,7 +267,7 @@ def install(app, store):
             "cover-options.jpg",
             "observation.json",
             "narration.wav",
-            "narration.json",
+            "narration.json", "review.json", "brief.json", "captions.srt", "manifest.json",
         }:
             raise HTTPException(404)
         with store.connection() as db:

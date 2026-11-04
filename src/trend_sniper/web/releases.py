@@ -75,6 +75,8 @@ def install(app, store, root, executor):
     @app.post("/api/releases/{key}", status_code=202)
     def schedule(key: str, review: ReviewedRelease):
         folder = ready(key)
+        if (folder / "review.json").exists():
+            raise HTTPException(409, "This bounded explainer pilot is private review only. Publishing is disabled.")
         destination = channel()
         if not destination or destination["id"] != review.channel_id:
             raise HTTPException(409, "Connect and verify the destination channel first")
