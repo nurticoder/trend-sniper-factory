@@ -1,4 +1,5 @@
-import {openSteam,jobs} from './radar.js';
+import {openSteam} from './radar.js';
+import {jobs,stopDesk} from './desk.js?v=operations1';
 
 const panels = [...document.querySelectorAll('[data-panel]')];
 const navigation = document.querySelector('nav[aria-label="Control center"]');
@@ -31,6 +32,7 @@ async function showBriefs(){
 }
 
 function navigate(){
+  stopDesk();
   const active=panels.find(p=>'#'+p.id===location.hash) || panels[0];
   for(const panel of panels)panel.hidden=panel!==active;
   for(const link of navigation.querySelectorAll('a')){
@@ -40,7 +42,7 @@ function navigate(){
   if(active.id==='steam' && !steamLoaded){openSteam();steamLoaded=true;}
   if(active.id==='control'){
     showBriefs();
-    jobs().catch(()=>document.getElementById('jobs').textContent='Could not load the queue. Reopen Control room to retry.');
+    jobs();
   }
   window.scrollTo(0,0);
 }

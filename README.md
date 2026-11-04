@@ -4,7 +4,7 @@ A local-first creator platform: **discover niches → analyze opportunities → 
 
 The goal is a browser dashboard that runs the workflow without asking a development chat to make each video. Designed for one creator, minimal recurring costs and limited time. Gaming Shorts are the first use case; DONT SPLASH and Poppy Playtime are example subjects, not fixed niches or verified growth opportunities.
 
-![Control room with an explicitly labeled local example](docs/images/control-room.png)
+![Production desk with a completed local QA preview](docs/images/production-desk.jpg)
 
 ## Production workers
 
@@ -25,13 +25,15 @@ Open **http://127.0.0.1:8765**. After installation, macOS users can double-click
 
 ## What works today
 
-The homepage is a scrolling niche explorer. It groups recent YouTube channel feed observations into editorial directions, interleaves categories, links thumbnail previews and original videos, and saves the selected niche for the production milestone. A background task checks for a due scan every ten minutes while the server is running and refreshes observations after 24 hours. Pace measures lifetime views divided by upload age (minimum one day), summarized by the group median. The feed ends when all observed niches have been shown.
+The homepage is a scrolling niche explorer built from dated public YouTube channel observations. Picks span gaming, education, news, stories and other subjects. Each shows its production format, reference images, original video links, source date and measured lifetime pace or change between observations. Discovery covers a seeded channel set. An observed audience for reference material is not proof of demand for the adapted format. Scans refresh daily while the app runs.
 
-The separate Steam factory at `/steam` opens with three Steam chart observations. Each card shows its game, genre, peak player count, chart movement and source date. The app ships a real November 2 snapshot, refreshes an older snapshot on open and offers **Scan again**. It retains the last dated scan when Steam is unavailable. Recommendations reflect Steam chart activity. YouTube audience demand and Roblox coverage are outside this first feed.
+Choose a niche, then **Produce a Short**. Rankings and news compare up to 100 source-constrained cuts. Fiction uses an optional local model with an honest built-in fallback. The factory matches cleared media, generates and selects among twelve covers, compiles original graphics with captions and timed sound, verifies the MP4, and proposes a release time. A fresh install needs no paid provider. Spoken narration is not yet connected.
 
-Choose **Produce Short** to create a 14-second original chart reveal or animated comeback with synthesized sound, timed captions, title and description. A local worker renders in the background and stores its status alongside the workspace. Repeat clicks reuse the same job. Interrupted jobs can be retried after restart. Run one server per database. Preview the MP4 and download it or its metadata under **Your productions**.
+**The control room** is the production desk: pause or resume the queue, stop jobs, retry from saved inputs, inspect activity/runtime/spend, filter episodes and review completed previews. The worker report contains script comparisons, a timed storyboard, material decisions, covers and release details. Waiting jobs survive a restart. Interrupted jobs keep their inputs for an explicit retry. Run one local server per database.
 
-The previous manual workspace is accessible under **The control room**. Publishing still requires a separate reviewed workflow.
+Daily private previews are opt-in and skip reused source sets. Scheduling requires owner OAuth and review of the exact finished artifacts, audience and disclosure. The transport is implemented but has only been tested with simulated uploads. Live analytics ingestion is not connected. A saved credential is shown separately from verified access.
+
+The Steam chart renderer remains available within the same homepage at `/#steam`. It produces original chart graphics from dated Steam observations. Previous manual briefs are preserved inside the control room.
 
 ## The essential platform
 
@@ -52,7 +54,7 @@ Buildless HTML/CSS/JavaScript interface, Python FastAPI service and SQLite. This
 
 The server binds only to `127.0.0.1`, restricts Host headers and cross-origin writes, and serves same-origin assets with a content security policy. It is a **single-user local tool without authentication**, not a public hosting configuration. Do not expose it through a tunnel or bind it to a public interface.
 
-App data is stored in ignored `local-data/control-room.sqlite3` relative to the launch directory. Choose another database with `trend-sniper serve --db PATH` or the exported `TSF_DB_PATH` environment variable. `.env` files are not automatically loaded. Stop the server before copying the SQLite database for backup; keep backups private and outside Git. The browser QA example on the development machine is explicitly labeled “Example”; a fresh checkout/database starts empty.
+App data is stored in ignored `local-data/control-room.sqlite3` relative to the launch directory. Choose another database with `trend-sniper serve --db PATH` or the exported `TSF_DB_PATH` environment variable. `.env` files are not automatically loaded. Stop the server before copying the SQLite database for backup; keep backups private and outside Git. QA runs use a separate database under ignored `work/`. A fresh checkout starts without production jobs or a channel connection.
 
 ## Check the project
 
@@ -60,7 +62,7 @@ App data is stored in ignored `local-data/control-room.sqlite3` relative to the 
 python -m unittest discover -s tests -v
 ```
 
-The automated suite covers real media roundtrip, persistence after a new app instance, evidence validation, archival behavior, script readiness, version history, stale edits, export, local-request boundaries and static files. Browser QA covers create/edit/save/reload, search, library navigation, version history and the actual downloaded JSON on mobile/desktop breakpoints. See [control-room verification](docs/control-room-validation.md).
+The suite covers media roundtrip, validated briefs, source-grounded cuts, cover generation, licensed fragment/audio selection, queue capacity, restart recovery, concurrent retries, cancellation and review-bound publishing with simulated transport. Browser QA covers the choose → pause → cancel → retry → resume → private-preview journey and readable edit review. See [production-desk verification](docs/factory-operations-validation.md).
 
 ## Existing renderer
 
@@ -70,7 +72,9 @@ For installation, commands, output format, batch generation and local review/que
 
 Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-Current milestone is the complete local worker run on `feat/production-workers`. Live channel authorization and audience measurement remain account-dependent.
+Current milestone is the production desk on `feat/factory-operations`: durable queue controls, restart recovery, linked retry attempts, readable edit review and service readiness. Live channel authorization and audience measurement remain account-dependent.
+
+The control room now supports pause/resume, cancellation, retries from saved sources, activity history and searchable previews. The worker report shows leading script candidates and a timed storyboard with source/audio decisions. [Operating guide](docs/product/OPERATING.md) · [Verification](docs/factory-operations-validation.md).
 
 ## Rights, cost and honest scope
 

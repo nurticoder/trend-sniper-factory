@@ -46,6 +46,46 @@ function reviewForm(job,info,release,meta){
   };
   return form;
 }
+
+function storyboard(script,report){
+  const section=node('details','');section.className='storyboard';
+  section.append(node('summary','Selected edit · '+script.scenes.reduce((n,shot)=>n+shot.seconds,0)+' seconds'));
+  const list=node('ol','');let at=0;
+  for(const [index,shot] of script.scenes.entries()){
+    const row=node('li','');const material=report.materials.scenes[index];
+    row.append(node('small',at+'–'+(at+shot.seconds)+'s / '+shot.heading),node('strong',shot.value),node('p',shot.caption));
+    row.append(node('p','Sound · '+(material?.effect?.description || material?.cue || 'Original score')));
+    if(shot.source){
+      try{
+        const url=new URL(shot.source);
+        if(url.protocol==='https:' || url.protocol==='http:'){
+          const source=anchor('Open source evidence ↗',url.href);source.target='_blank';source.rel='noopener noreferrer';row.append(source);
+        }
+      }catch{/* An invalid reference remains excluded from navigation. */}
+    }
+    list.append(row);at+=shot.seconds;
+  }
+  section.append(list);return section;
+}
+function draftComparison(pool){
+  const box=node('details','');box.className='draft-comparison';
+  box.append(node('summary','Compare leading script candidates'));
+  const list=node('ol','');
+  const candidates=[...pool.drafts].filter(d=>d.assessment?.eligible!==false)
+    .sort((a,b)=>(b.assessment?.score || 0)-(a.assessment?.score || 0)).slice(0,5);
+  if(!candidates.some(d=>d.id===pool.winner)){
+    const winner=pool.drafts.find(d=>d.id===pool.winner);if(winner)candidates.unshift(winner);
+  }
+  for(const draft of candidates){
+    const row=node('li','');row.append(node('strong','#'+draft.id+(draft.id===pool.winner?' · Selected':'')+
+      (draft.assessment?.score!=null?' · '+draft.assessment.score+'/100':'')),
+      node('p',draft.scenes.map(s=>s.value).join(' → ')));
+    const criteria=Object.entries(draft.assessment?.criteria || {}).map(([name,value])=>name.replaceAll('_',' ')+': '+value).join(' · ');
+    if(criteria)row.append(node('small',criteria));list.append(row);
+  }
+  box.append(node('p','Editorial scores compare these drafts. They are not predictions of views or retention.'),list);
+  return box;
+}
 export function decisions(job){
   const box=node('details','');
   box.className='worker-report';
@@ -58,7 +98,7 @@ export function decisions(job){
     const base='/api/productions/'+job.id+'/';
     body.textContent='Loading this run…';
     try{
-      const [report,info]=await Promise.all([json(base+'production-report.json'),json('/api/releases/'+job.id)]);
+      const [report,info,script,pool]=await Promise.all([json(base+'production-report.json'),json('/api/releases/'+job.id),json(base+'script.json'),json(base+'script-options.json')]);
       if(seq!==request)return;
       const a=report.script_assessment;
       const sceneList=node('ol','');
@@ -67,7 +107,10 @@ export function decisions(job){
       body.replaceChildren(node('h3','Script selection'),node('p',report.script_count+' complete cuts · selected #'+report.winning_script+
         (a.score!=null?' · editorial score '+a.score+'/100':'')),node('p',report.writer),
         anchor('Inspect all drafts and scores',base+'script-options.json'),
-        node('h3','Scene materials'),sceneList,anchor('Open research packet',base+'observation.json'),
+        draftComparison(pool),storyboard(script,report),
+        node('h3','Scene materials'),sceneList,
+        node('p','Music · '+(report.materials.music?.description || report.materials.music_fallback)),
+        node('p',report.rejected_assets.length+' library entries rejected · '+report.online_search.reduce((n,s)=>n+(s.eligible_files||0),0)+' eligible files found online'),anchor('Open research packet',base+'observation.json'),
         node('h3','Cover selection'),node('p','Selected #'+report.covers.winner.number+' of '+report.covers.candidates.length+
           ' · '+report.covers.winner.concept+' · '+report.covers.winner.font_px+' px headline'),
         image(base+'cover-options.jpg','Twelve generated cover options in reading order'),

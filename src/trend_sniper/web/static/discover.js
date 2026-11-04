@@ -89,16 +89,19 @@ async function watch(key){
   const box=id('output');
   const job=(await api('/api/productions')).find(item=>item.id===key);
   if(!job)return;
+  if(job.retry_id){localStorage.setItem('activeProduction',job.retry_id);return watch(job.retry_id);}
   box.hidden=false;box.replaceChildren(el('small','PRODUCTION'),el('h2',job.title));
   if(job.status==='ready'){
     const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
     if(job.has_report){
       video.poster='/api/productions/'+key+'/cover.jpg';
-      const {decisions}=await import('./workers.js');box.append(decisions(job));
+      const {decisions}=await import('./workers.js?v=operations1');box.append(decisions(job));
     }
   }else{
     box.append(el('p',job.error || (job.status==='running' && job.stage?job.stage:'Factory status · '+job.status)));
+    const desk=el('a',['failed','cancelled'].includes(job.status)?'Open production desk to retry →':'Manage this job in the production desk →');
+    desk.href='#control';box.append(desk);
     if(['queued','running'].includes(job.status))jobTimer=setTimeout(()=>watch(key).catch(e=>id('status').textContent=e.message),1800);
   }
 }

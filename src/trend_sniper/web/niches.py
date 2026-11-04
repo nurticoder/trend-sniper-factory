@@ -53,12 +53,15 @@ def install(app, store):
 
     @asynccontextmanager
     async def lifespan(_):
+        app.state.production_queue.wake()
         task = asyncio.create_task(daily())
         try:
             yield
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
+            await asyncio.to_thread(app.state.production_queue.close)
+            await asyncio.to_thread(app.state.publisher_executor.shutdown, wait=True)
     app.router.lifespan_context = lifespan
     with store.connection() as db:
         db.execute('CREATE TABLE IF NOT EXISTS chosen_niche(slot INTEGER PRIMARY KEY, snapshot TEXT NOT NULL)')

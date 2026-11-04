@@ -99,3 +99,8 @@ Multi-user accounts, billing, mobile apps, a public hosted service, a visual edi
 ## Control-room delivery status
 
 Implemented in v0.2 on `feat/control-room`: the local browser board/library, opportunity/evidence forms, manual idea/script studio, version history, stage validation and JSON export. Records persist in SQLite and stale saves are rejected. The first slice intentionally exposes manual writing instead of pretending a generation provider is connected. Automatic opportunity analysis and script generation remain subsequent slices. The renderer is still CLI-only; there is no dashboard production worker.
+
+
+## Production desk milestone — November 2026
+
+The historical milestone notes above describe their original delivery, not the current capability set. Discovery formats now connect to local production, script/cover judging, media selection, private preview and reviewed OAuth scheduling. The production desk adds a persistent queue, source-frozen retry attempts, cancellation between stages, dated activity and honest provider readiness. The original manual brief workspace remains available as saved briefs. See [OPERATING.md](OPERATING.md) for current behavior and limits. Next prioritize a licensed local voiceover provider and richer source-grounded scripts before scaling output. Full analytics ingestion and live-channel upload verification remain outstanding.

@@ -79,7 +79,7 @@ def create_app(db_path: Path | None = None):
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://i.ytimg.com; "
             "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
-        if request.url.path.startswith('/api/'):
+        if request.url.path.startswith(('/api/', '/static/')) or request.url.path == '/':
             response.headers['Cache-Control'] = 'no-store'
         return response
 
@@ -146,4 +146,6 @@ def create_app(db_path: Path | None = None):
     install(app, store)
     from .niches import install as install_niches
     install_niches(app, store)
+    from .readiness import install as install_readiness
+    install_readiness(app, store)
     return app
