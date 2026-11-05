@@ -1,91 +1,106 @@
 # Trend Sniper Factory
 
-**Working local MVP:** a JSON script becomes an original 25-second vertical Short, with procedural animation, synthesized sound, captions, title, description, hashtags and an asset provenance manifest. No gameplay capture, editing session, paid API, model download or account required.
+A local-first creator platform: **discover niches → analyze opportunities → develop original ideas and scripts → assemble video and sound → review → publish → learn from results**.
 
-Built as a student portfolio project: reproducible media generation, subprocess streaming, artifact integrity checks, a human review gate and CI. It does not promise virality, income or YouTube monetization.
+The goal is a browser dashboard that runs the workflow without asking a development chat to make each video. Designed for one creator, minimal recurring costs and limited time. Gaming Shorts are the first use case; DONT SPLASH and Poppy Playtime are example subjects, not fixed niches or verified growth opportunities.
 
-[Watch the generated demo](examples/demo/short.mp4) · [Inspect its manifest](examples/demo/manifest.json)
+![Production desk with a completed local QA preview](docs/images/production-desk.jpg)
 
-<img src="examples/demo/poster.png" width="240" alt="Original pool route puzzle, vertical first frame">
+## Footage-led explainer fixture
 
-## Run in five minutes
+**Production studio** retains a sourced water-in-microgravity collection. Its curated path includes a reusable brief, voice-delivery auditions, editable narration and shot decisions, licensed-source records, smooth prominent footage, measured speech, phrase captions and a private editorial review. This is one curated collection; unsupported topics and missing media are visible. Publishing is disabled for the pilot. [Workflow, validation and limitations](docs/footage-explainer-pilot.md).
 
-Python 3.11+ on macOS, Linux or Windows. Initial installation needs internet to download Pillow and the platform FFmpeg wheel; rendering then works offline. Example commands use macOS/Linux (Windows: `.venv\Scripts\activate`).
+## Production workers
+
+[Research and automation plan](docs/product/AUTOMATION.md) · [Worker operations, media licenses and release scheduling](docs/product/OPERATING.md)
+
+Choose a niche, then **Produce video automatically**. The remote worker researches an original explanation, writes and checks source support, records Kokoro narration, searches licensed footage, inspects and cuts matching moments, revises unsuccessful scenes and assembles a complete preview. The creator reviews the finished result. Source downloads and rendering stay off the desktop. [Current workflow, budgets and hosting prerequisite](docs/autonomous-remote-production.md).
+
+## Start the dashboard
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
-trend-sniper render --topic topics/dont-splash.json --out renders/first
+pip install -e ".[web,test]"
+trend-sniper serve
 ```
 
-Open `renders/first/short.mp4`. Output is 720×1280, 9:16, 24 fps, H.264/yuv420p + AAC, fast-start MP4. The renderer decodes the whole finished video to check for encoding errors. Use a fresh output directory on each run; existing deliverables are never overwritten.
+Open **http://127.0.0.1:8765**. After installation, macOS users can double-click `start.command` to start the server and open a browser. Keep its terminal running while using the app; Ctrl+C stops it. Windows users activate `.venv\Scripts\activate` instead.
 
-The included English-language episode is an **original pool-route puzzle inspired by DONT SPLASH / Roblox**, explicitly labeled as animation rather than gameplay. Its fictional puzzle rules are not claims about the game. All art consists of code-drawn geometry. Sound is generated from oscillators; **there is no narrator in v0.1**. DONT SPLASH is a user-selected hypothesis, not a measured fast-growing trend.
+## What works today
 
-## Files produced
+The homepage is a scrolling niche explorer built from dated public YouTube channel observations. Picks span gaming, education, news, stories and other subjects. Each shows its production format, reference images, original video links, source date and measured lifetime pace or change between observations. Discovery covers a seeded channel set. An observed audience for reference material is not proof of demand for the adapted format. Scans refresh daily while the app runs.
 
-| File | Purpose |
+Default topic jobs dispatch to an authenticated remote worker. They use subject evidence rather than competitor view counts, measured narration, multiple footage shots where appropriate, smooth 720×1280/24fps assembly, phrase captions and retained source/license/hash records. A missing shot triggers alternate searches or a revised script/visual concept. After bounded retries, failure is visible; slides are never silently substituted for a footage video.
+
+**Hosting is a prerequisite, not yet a verified deployment.** Open Control room → Factory services → Remote production worker. Enter a Hugging Face write token only in the local password field. The app uploads application source and requests private CPU Basic hardware; it never purchases a subscription or upgrades hardware. Current Hugging Face rules require a paid account plan to create new Docker compute Spaces, even though CPU Basic has no hourly price. Existing eligible accounts/Spaces may work. Do not buy a plan to satisfy this setup without deciding separately. The account was connected, but the free Gradio alternative failed its compatibility test and is paused. Its adapter is disabled. Full hosted rendering and arbitrary-topic quality remain unverified. Desktop media production is not a fallback.
+
+Discovery remains seeded. **Explicit analytics report** preserves the legacy statistics renderer as an opt-in format. Licensed footage availability and automated fact/visual checks are imperfect; the finished preview still needs real editorial and rights review.
+
+**The control room** is the production desk: pause or resume the queue, stop jobs, retry from saved inputs, inspect activity/runtime/spend, filter episodes and review completed previews. Topic jobs link to scene and editorial review. Legacy analytics reports retain script comparisons, a timed storyboard, material decisions, covers and release details. Waiting jobs survive a restart. Interrupted remote jobs reconnect using their saved worker identity. Other interrupted jobs retain inputs for an explicit retry. Run one local server per database.
+
+Daily production is opt-in and skips reused source sets; new topic jobs use the same remote workflow. Scheduling requires owner OAuth and review of the exact finished artifacts, audience and disclosure. The transport is implemented but has only been tested with simulated uploads. Live analytics ingestion is not connected. A saved credential is shown separately from verified access.
+
+The Steam chart renderer remains available within the same homepage at `/#steam`. It produces original chart graphics from dated Steam observations. Previous manual briefs are preserved inside the control room.
+
+## Optional local fixture voice
+
+```sh
+pip install -e ".[voice]"
+trend-sniper install-voice
+```
+
+This developer-only local setup downloads the pinned Kokoro-82M int8 model and voice bank (about 120 MB), using the selected `af_heart` voice offline. No cloud account, per-character fee or production-time download is involved. Production studio offers steady/brisk delivery auditions; earlier Piper auditions are invalidated. Topic explainers require narration. The control-room off/auto/required preference remains for legacy analytics jobs; it cannot silently remove speech from a footage explainer. [Current setup and verification](docs/kokoro-footage-workflow.md).
+
+## The essential platform
+
+| Area | Purpose |
 | --- | --- |
-| `short.mp4` | Finished video with burned-in text and audio |
-| `poster.png` | First-frame preview |
-| `script.json` | Exact episode input |
-| `metadata.json`, `metadata.txt` | Upload copy; pending review, private by default |
-| `captions.srt` | Timed script captions |
-| `soundtrack.wav` | Original generated audio |
-| `manifest.json` | Hashes, provenance, runtime, API spending |
-| `ffmpeg-version.txt`, `ffmpeg.log` | Encoder configuration and diagnostics |
+| Discover & analyze | Find accessible niches and breakout topics; show sources, velocity, competition and confidence |
+| Ideas & scripts | Develop an original hook and payoff; produce an editable timed script, storyboard and audio cues |
+| Media & sound | Select permitted visuals, voices, effects, meme-style stings and music for specific moments |
+| Production | Run durable jobs, assemble shots, mix audio, add captions, preview, retry and track cost |
+| Review & publishing | Check the exact output, audience and rights; privately upload and schedule approved work |
+| Results | Compare actual same-age performance and cost; feed evidence into the next idea |
 
-## Topics and series
+Read the [product direction and ordered build plan](docs/product/PLATFORM.md). The implemented production slice is described in the [automation plan](docs/product/AUTOMATION.md).
 
-Copy the JSON topic and change the id, editorial premise, title, description and scenes. Scene modes currently belong to the **pool puzzle renderer**: `choice`, `rule`, `splash`, `safe`, `reveal`, `end`. Each scene lasts 1–12 seconds; total is capped at 60 seconds. ASCII English text is recommended with the bundled font; another language needs a licensed font via `TSF_FONT`.
+## Current stack
 
-```sh
-trend-sniper batch --topics topics/dont-splash.json topics/your-original-episode.json --out renders/series
-```
+Buildless HTML/CSS/JavaScript interface, Python FastAPI service and SQLite. This first slice avoids a Node installation or frontend build; all static assets ship inside the Python package. The earlier React interface proposal is deferred until component complexity justifies it. No web font, CDN, paid provider or cloud database is used.
 
-Supply distinct IDs and substantively different scripts. Batch processes the supplied scripts sequentially; it does not invent, scrape or approve scripts. If a job fails, completed folders remain available; rerun only failed topics into fresh folders. The scene geometry is fixed in v0.1. **Changing the topic label to Poppy Playtime does not create a suitable Poppy episode**; that needs its own original visual treatment and factual review. Do not publish cosmetic variations of the same template at scale.
+The desktop server binds only to `127.0.0.1`, restricts Host headers and cross-origin writes, and serves same-origin assets with a content security policy. It is a **single-user local tool without authentication**, not a public hosting configuration. Do not expose it through a tunnel or bind it to a public interface.
 
-## Review and local queue
+App data is stored in ignored `local-data/control-room.sqlite3` relative to the launch directory. Choose another database with `trend-sniper serve --db PATH` or the exported `TSF_DB_PATH` environment variable. `.env` files are not automatically loaded. Stop the server before copying the SQLite database for backup; keep backups private and outside Git. QA runs use a separate database under ignored `work/`. A fresh checkout starts without production jobs or a channel connection.
 
-Watch the whole MP4, read its metadata, check claims/rights and decide audience. Only then run:
-
-```sh
-trend-sniper approve renders/first --audience made_for_kids --reviewer YOUR_NAME
-trend-sniper enqueue renders/first --at 2027-01-10T18:00:00+08:00 --queue queue.json
-```
-
-The audience above is an example, **not a determination for your channel**. Select `not_made_for_kids` only when supported by the actual intended audience and content. Being about Roblox does not settle the question either way; mixed-audience content directed at children can still be made for kids.
-
-Approval records hashes of the video, script, captions, metadata and manifest. Changing those files invalidates approval. Duplicate video hashes are rejected. A future timezone-aware timestamp is required. The queue is a single-user JSON file, **not a running scheduler**; it records `ready_for_manual_upload` and never calls YouTube. Do not run concurrent writers. There is no background service.
-
-## Configuration and costs
-
-No `.env` is required. `.env.example` documents optional environment variables; `.env` is not loaded automatically. Export variables in your shell if needed. `IMAGEIO_FFMPEG_EXE` can select your installed encoder; it must support libx264 and AAC. `TSF_FONT` selects a font you have rights to use. Never commit OAuth files or tokens.
-
-This episode makes **zero paid API calls**. Runtime is recorded in `manifest.json`; electricity, hardware, installation downloads and your editorial time are not free and are not priced. There is no revenue estimate.
-
-## Verification
+## Check the project
 
 ```sh
 python -m unittest discover -s tests -v
-trend-sniper render --topic topics/dont-splash.json --out renders/smoke
 ```
 
-Tests include a real two-second MP4 roundtrip and cover malformed scripts, missing/stale approval, duplicate queue entries and schedule validation. GitHub Actions runs tests and a full render on Python 3.11/3.14 Linux. Locally verified on Python 3.14/macOS ARM; hosted CI is configured, not yet run. No credentials are required.
+The suite covers media roundtrip, validated briefs, source-grounded cuts, cover generation, licensed fragment/audio selection, queue capacity, restart recovery, concurrent retries, cancellation and review-bound publishing with simulated transport. Browser QA covers the choose → pause → cancel → retry → resume → private-preview journey and readable edit review. See [production-desk verification](docs/factory-operations-validation.md).
 
-## Next milestone (not implemented)
+## Existing renderer
 
-1. Add a second original renderer and distinct episode briefs; evaluate the first video's hook and legibility before producing a series.
-2. Add explicit YouTube desktop OAuth, minimal upload scope, private resumable upload, protected/revocable token storage and failure recovery. Never use a service account for a personal channel.
-3. Add review-bound scheduling with persisted remote video ID, idempotency and reconciliation after uncertain network failures. A worker must recheck hashes, audience and permissions immediately before upload. YouTube's API supports `status.publishAt` with private videos; verify current account/project restrictions before enabling public scheduling.
-4. Add read-only owner-authorized analytics: timestamped view snapshots, watch time and retention where available, per-video cost and comparison at equal publication age. No fabricated sample performance or revenue data.
-5. Add trend evidence from permitted official APIs, storing observation timestamps and multiple samples. A single view count is not growth evidence. Avoid scraping or inventing a “trend score”.
+For installation, commands, output format, batch generation and local review/queue usage, see the [render engine guide](docs/render-engine.md). These are developer commands, not the finished platform interface. No new video is generated just by opening this project or reading the docs.
 
-The first milestone is usable without account access. OAuth upload, live trend discovery and channel analytics remain future work, not hidden features.
+## Development workflow
 
-## Rights and platform policy
+Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for libraries, fonts and FFmpeg licensing, and [docs/research.md](docs/research.md) for primary sources checked on 2026-11-03. Source code is MIT; third-party licenses retain their own terms. No third-party game media is bundled. Roblox and game names are used descriptively, with no affiliation implied.
+Current milestone on `feat/autonomous-remote-production`: remote dispatch, bounded autonomous research/retrieval/revision and streamed finished-preview review. Protocol and automation tests pass; a complete hosted video is blocked by compatible hosting. The private free-host experiment failed and is paused. Next: verify that exact production path on the saved Minecraft request before expanding formats.
 
-Original generated visuals do not guarantee monetization. YouTube reviews repetitive/mass-produced content as well as reused content. Review factual claims, audience designation, misleading metadata and any applicable synthetic-media disclosure before publishing. Stylized procedural animation does not by itself determine the platform's altered-content disclosure setting. `containsSyntheticMedia` in our metadata is a local provenance field, not a finalized YouTube API request.
+The control room now supports pause/resume, cancellation, retries from saved sources, activity history and searchable previews. The worker report shows leading script candidates and a timed storyboard with source/audio decisions. [Operating guide](docs/product/OPERATING.md) · [Verification](docs/factory-operations-validation.md).
+
+## Rights, cost and honest scope
+
+All production assets must carry permission evidence; popular meme sounds are not automatically free to reuse. Default to owned, licensed or original synthesized audio. An asset licensed only for YouTube's native Shorts creation flow cannot be assumed usable in an exported MP4.
+
+Originality, audience designation and publication decisions require real review. No trend, monetization or income guarantees. Paid provider calls must be optional, budgeted and visible. Source code is MIT; dependencies retain their own licenses. See [third-party notices](THIRD_PARTY_NOTICES.md), [research](docs/research.md) and [baseline validation](docs/validation.md).
+
+### Format studio
+
+The homepage distinguishes discovery from subject content. Default production uses remote research, Qwen2.5 7B writing/editing, Moondream scene checks and the selected Kokoro voice. Unavailable services or exhausted revisions fail visibly. Local Ollama subject planning remains a developer fixture. No built-in fictional story or upload leaderboard is substituted for a topic explanation. The old recipes are retained as legacy components, not the default.
+
+Daily scans compare the same videos across snapshots when available. Initial picks use lifetime views per day. Source-channel attention is a proxy for the proposed format, particularly when adapting family fiction for older viewers.

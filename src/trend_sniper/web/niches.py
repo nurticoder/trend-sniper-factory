@@ -1,0 +1,116 @@
+import asyncio
+import json
+import sqlite3
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from threading import Lock
+from typing import Literal
+
+from fastapi import HTTPException, Query
+
+from ..production.daily import DailyPreviews, edition_key
+from .formats import eligible
+from .discovery import collect, SNAPSHOT
+
+
+def install(app, store):
+    automation = DailyPreviews(store)
+    cache = store.path.with_suffix('.niches.json')
+    gate = Lock()
+    status = {'error': None, 'scanning': False}
+
+    def read():
+        seed=json.loads(SNAPSHOT.read_text())
+        if not cache.exists(): return seed
+        saved=json.loads(cache.read_text())
+        return max((saved,seed),key=lambda item:item['observed'])
+
+    def refresh():
+        if not gate.acquire(blocking=False):
+            return
+        status.update(scanning=True,error=None)
+        try:
+            snapshot = collect(read())
+            temp = cache.with_suffix('.tmp')
+            temp.write_text(json.dumps(snapshot))
+            temp.replace(cache)
+        except (OSError, ValueError) as error:
+            status['error'] = str(error)
+        finally:
+            status['scanning'] = False
+            gate.release()
+
+    async def daily():
+        while True:
+            age = datetime.now(timezone.utc) - datetime.fromisoformat(read()['observed'])
+            if age.total_seconds() >= 86400:
+                await asyncio.to_thread(refresh)
+            if automation.niche():
+                try:
+                    await asyncio.to_thread(automation.tick,eligible(read()['cards']),app.state.enqueue)
+                except (sqlite3.Error, OSError, ValueError) as error:
+                    status['error']=str(error)
+            await asyncio.sleep(600)
+
+    @asynccontextmanager
+    async def lifespan(_):
+        app.state.production_queue.wake()
+        task = asyncio.create_task(daily())
+        try:
+            yield
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            await asyncio.to_thread(app.state.audition_executor.shutdown, wait=True)
+            await asyncio.to_thread(app.state.production_queue.close)
+            await asyncio.to_thread(app.state.publisher_executor.shutdown, wait=True)
+    app.router.lifespan_context = lifespan
+    with store.connection() as db:
+        db.execute('CREATE TABLE IF NOT EXISTS chosen_niche(slot INTEGER PRIMARY KEY, snapshot TEXT NOT NULL)')
+
+    @app.get('/api/niches')
+    def niches(offset:int=Query(0,ge=0), category:str='', format:str=''):
+        snapshot = read()
+        all_cards = eligible(snapshot['cards'])
+        entries = [c for c in all_cards if (not category or c['category']==category) and (not format or c['format']==format)]
+        end = offset+9
+        return dict(cards=entries[offset:end],next=end if end<len(entries) else None,total=len(entries),
+                    categories=sorted({c['category'] for c in all_cards}),observed=snapshot['observed'],
+                    failed=snapshot['failed'],sources=snapshot['sources'],**status)
+
+    @app.get('/api/niche-selection')
+    def selected():
+        with store.connection() as db:
+            row = db.execute('SELECT snapshot FROM chosen_niche WHERE slot=1').fetchone()
+        # Preserve frozen discovery evidence but refresh obsolete production labels.
+        return eligible([json.loads(row[0])])[0] if row else None
+
+    @app.post('/api/niche-selection')
+    def select(key:str):
+        card = next((c for c in eligible(read()['cards']) if c['id']==key),None)
+        if card is None:
+            raise HTTPException(404,'This observation has expired. Reload the feed.')
+        with store.connection() as db:
+            db.execute('INSERT OR REPLACE INTO chosen_niche VALUES (1,?)',(json.dumps(card),))
+        return card
+
+
+    @app.post('/api/niche-production', status_code=202)
+    def produce_selected(key:str, production_format:Literal["content","analytics"]="content"):
+        card = selected()
+        if not card or card['id'] != key or not eligible([card]):
+            raise HTTPException(409,'Select this format before production.')
+        return app.state.enqueue('remote-v1/'+production_format+'/'+edition_key(card),{'title':card['name'],'recipe_card':card,'production_options':{'production_format':production_format}})
+
+
+    @app.get('/api/daily-preview')
+    def daily_config():
+        return {'niche':automation.niche()}
+
+    @app.post('/api/daily-preview')
+    def daily_configure(key:str=''):
+        card=selected()
+        if key and (not card or card['id']!=key):
+            raise HTTPException(409,'Choose this niche first')
+        automation.set(key or None)
+        return {'niche':automation.niche()}
