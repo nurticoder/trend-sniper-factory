@@ -1,4 +1,0 @@
-ffmpeg
-curl
-ca-certificates
-zstd

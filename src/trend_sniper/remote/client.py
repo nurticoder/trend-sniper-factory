@@ -39,6 +39,11 @@ def configuration(inputs):
             "Connect a remote worker in Factory services. No footage was downloaded to this computer."
         )
     value = json.loads(path.read_text())
+    if value.get("hosting") == "zero-gradio":
+        raise ValueError(
+            "Cloud setup failed and is paused. The free Hugging Face hosting option could not run this worker. "
+            "Connect an eligible CPU Basic worker to continue. No footage was downloaded locally and no paid plan was enabled."
+        )
     url = urlsplit(value.get("url", ""))
     if (
         url.scheme != "https"

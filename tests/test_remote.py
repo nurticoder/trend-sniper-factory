@@ -38,6 +38,37 @@ def wait(test, http, job):
 
 
 class DesktopRemotePath(unittest.TestCase):
+    def test_incompatible_free_host_is_visible_and_cannot_start_desktop_media(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            client.save_configuration(
+                root,
+                {
+                    "url": "https://fixture.hf.space",
+                    "key": "x" * 64,
+                    "hosting": "zero-gradio",
+                },
+            )
+            app = create_app(root / "qa.db")
+            with (
+                patch("trend_sniper.web.niches.collect", side_effect=OSError),
+                patch("trend_sniper.remote.client.json_call") as remote,
+                patch("trend_sniper.production.topic_workflow.prepare") as local,
+                TestClient(app) as http,
+            ):
+                state = http.get("/api/remote-worker").json()
+                self.assertFalse(state["connected"])
+                self.assertIn("paused", state["detail"])
+                card = http.get("/api/niches").json()["cards"][0]
+                http.post("/api/niche-selection", params={"key": card["id"]})
+                job = http.post(
+                    "/api/niche-production", params={"key": card["id"]}
+                ).json()["id"]
+                self.assertEqual(wait(self, http, job)["status"], "failed")
+                remote.assert_not_called()
+                local.assert_not_called()
+                self.assertFalse(list(root.rglob("*.mp4")))
+
     def test_two_niches_dispatch_remotely_without_local_speech_footage_or_render(self):
         for subject, story in [
             ("Physics mysteries", PHYSICS),
@@ -208,82 +239,6 @@ class DesktopRemotePath(unittest.TestCase):
 
 
 class CloudProtocol(unittest.TestCase):
-    def test_gpu_checker_requires_remote_setup_and_propagates_free_quota_refusal(self):
-        from trend_sniper.remote import gpu_vision
-
-        with (
-            patch.dict(os.environ, {"TSF_WORKER_PROCESS": "0"}),
-            self.assertRaisesRegex(ValueError, "restricted"),
-        ):
-            gpu_vision.load()
-        with (
-            patch.object(
-                gpu_vision, "verify_frame", side_effect=RuntimeError("Quota exceeded")
-            ),
-            self.assertRaisesRegex(ValueError, "quota exhausted"),
-        ):
-            gpu_vision.inspect(b"fixture", "Requested subject and action")
-
-    def test_free_gradio_requests_only_zero_cost_host_without_billing_calls(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            calls = []
-
-            def network(token, path, method="GET", body=None, ndjson=False):
-                calls.append((path, method, body))
-                if path == "whoami-v2":
-                    return {"name": "creator"}
-                if path == "spaces/creator/worker" and len(calls) == 2:
-                    raise HTTPError(
-                        "https://huggingface.co/api/" + path, 404, "missing", {}, None
-                    )
-                if path == "spaces/creator/worker":
-                    return {"host": "creator-worker.hf.space"}
-                return {}
-
-            with (
-                patch("trend_sniper.remote.deploy.hf", side_effect=network),
-                patch(
-                    "trend_sniper.remote.deploy.subprocess.run",
-                    return_value=type(
-                        "Tracked", (), {"stdout": "src/trend_sniper/remote/client.py\0"}
-                    )(),
-                ),
-            ):
-                deploy(
-                    {
-                        "hf_token": "fixture",
-                        "space_name": "worker",
-                        "key": "x" * 64,
-                        "hosting": "zero-gradio",
-                    },
-                    Path(tmp),
-                    lambda _: None,
-                )
-            creation = next(body for path, _, body in calls if path == "repos/create")
-            self.assertEqual(
-                (creation["sdk"], creation["hardware"], creation["private"]),
-                ("gradio", "zero-a10g", True),
-            )
-            commit = next(body for path, _, body in calls if "/commit/" in path)
-            paths = [
-                json.loads(row)["value"].get("path") for row in commit.splitlines()
-            ]
-            self.assertIn("app.py", paths)
-            self.assertIn("requirements.txt", paths)
-            self.assertNotIn("Dockerfile", paths)
-            self.assertFalse(
-                any("billing" in path or "credits" in path for path, _, _ in calls)
-            )
-
-    def test_gradio_runtime_cannot_install_on_desktop(self):
-        from trend_sniper.remote.runtime import ensure_ollama
-
-        with (
-            patch.dict(os.environ, {"TSF_WORKER_PROCESS": "0"}),
-            self.assertRaisesRegex(ValueError, "restricted"),
-        ):
-            ensure_ollama("/unused")
-
     def test_deployment_uploads_only_source_and_activates_private_cpu_worker(self):
         with tempfile.TemporaryDirectory() as tmp:
             calls = []

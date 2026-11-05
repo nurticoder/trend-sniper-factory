@@ -15,14 +15,14 @@ export function automaticPlan(box,job,plan,open){
  const message=node('p');message.setAttribute('role','status');box.append(message);
  button.onclick=async()=>{button.disabled=true;try{
   const connection=await refresh();
-  if(!connection?.connected && !connection?.configured){message.textContent='Connect the cloud worker once in Factory services. Source footage will not be downloaded to this computer.';const link=node('a','Open cloud connection');link.href='#control';link.onclick=()=>document.getElementById('readiness').open=true;message.append(link);return;}
+  if(!connection?.connected){message.textContent=connection?.detail || 'Connect the cloud worker once in Factory services. Source footage will not be downloaded to this computer.';const link=node('a','Open cloud connection');link.href='#control';link.onclick=()=>document.getElementById('readiness').open=true;message.append(link);return;}
   await open(await api('/api/content-plans/'+job+'/automatic','POST'));
  }catch(e){message.textContent=e.message;}finally{button.disabled=false;}};
 }
 const form=document.getElementById('remote-connect');
 if(form){form.onsubmit=async e=>{e.preventDefault();const token=document.getElementById('remote-token'),button=form.querySelector('button');button.disabled=true;
- try{const job=await api('/api/remote-worker/connect','POST',{token:token.value,space_name:document.getElementById('remote-space').value,hosting:document.getElementById('remote-hosting').value});token.value='';
-  document.getElementById('remote-worker-status').textContent='Checking free hosting eligibility and deploying. No subscription, credits or hardware upgrade will be purchased.';
+ try{const job=await api('/api/remote-worker/connect','POST',{token:token.value,space_name:document.getElementById('remote-space').value});token.value='';
+  document.getElementById('remote-worker-status').textContent='Checking eligibility and deploying CPU Basic. No subscription or hardware upgrade will be purchased.';
   const poll=async()=>{try{const state=(await api('/api/productions')).find(x=>x.id===job.id);if(['queued','running'].includes(state?.status)){document.getElementById('remote-worker-status').textContent=state.stage || state.status;setTimeout(poll,2000);}else if(state?.status==='failed'){document.getElementById('remote-worker-status').textContent=state.error;}else await refresh();}catch(e){document.getElementById('remote-worker-status').textContent=e.message;}};poll();
  }catch(e){document.getElementById('remote-worker-status').textContent=e.message;}finally{token.value='';button.disabled=false;}};
  refresh();

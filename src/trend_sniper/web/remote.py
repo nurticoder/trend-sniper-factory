@@ -2,7 +2,6 @@
 
 import json
 import secrets
-from typing import Literal
 from urllib.error import HTTPError
 
 from fastapi import HTTPException
@@ -15,7 +14,6 @@ from ..remote import client
 class Connection(BaseModel):
     model_config = ConfigDict(extra="forbid")
     token: SecretStr
-    hosting: Literal["cpu-basic", "zero-gradio"] = "zero-gradio"
     space_name: str = Field(
         default="trend-sniper-worker", pattern="^[a-z0-9][a-z0-9-]{3,60}$"
     )
@@ -63,25 +61,25 @@ def install(app, store):
     def status():
         try:
             config = client.configuration(inputs)
-        except (OSError, ValueError):
+        except OSError:
             return {
                 "connected": False,
                 "detail": "Remote worker not connected. Production media will stay off this computer.",
             }
+        except ValueError as exc:
+            return {"connected": False, "detail": str(exc)}
         try:
             health = client.json_call(config, "/health")
             if health.get("service") != "trend-sniper-worker":
                 raise ValueError("Unexpected service")
             return {
                 "connected": True,
-                "configured": True,
                 "space_id": config.get("space_id"),
                 "detail": "Private remote worker ready. Source footage, cuts and rendering stay in the cloud.",
             }
         except (OSError, ValueError):
             return {
                 "connected": False,
-                "configured": True,
                 "space_id": config.get("space_id"),
                 "detail": "Worker is starting, asleep or unavailable. Check deployment status; no local download fallback.",
             }
@@ -99,7 +97,6 @@ def install(app, store):
             "space_name": body.space_name,
             "key": secrets.token_hex(32),
             "url": "",
-            "hosting": body.hosting,
         }
         path = client.config_path(inputs)
         if path.is_file():

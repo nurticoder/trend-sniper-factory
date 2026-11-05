@@ -1,4 +1,4 @@
-"""Deploy eligible zero-hourly-cost HF hardware only. Never buy a plan or credits."""
+"""Deploy only CPU Basic to an eligible existing Hugging Face account. Never buy a plan."""
 
 import base64
 import json
@@ -29,12 +29,9 @@ def hf(token, path, method="GET", body=None, ndjson=False):
 def deploy(config, inputs, stage):
     token = config["hf_token"]
     stage(
-        "Checking free hosting eligibility; no paid plan, credits or hardware will be purchased"
+        "Checking account eligibility and CPU Basic hardware; no paid plan will be purchased"
     )
     account = hf(token, "whoami-v2")
-    free_gradio = config.get("hosting") == "zero-gradio"
-    hardware_name = "zero-a10g" if free_gradio else "cpu-basic"
-    sdk = "gradio" if free_gradio else "docker"
     name = account["name"]
     space_id = name + "/" + config["space_name"]
     try:
@@ -46,11 +43,10 @@ def deploy(config, inputs, stage):
             )
         hardware = (info.get("runtime") or {}).get("hardware") or {}
         if any(
-            hardware.get(k) not in {None, hardware_name}
-            for k in ["current", "requested"]
+            hardware.get(k) not in {None, "cpu-basic"} for k in ["current", "requested"]
         ):
             raise ValueError(
-                "Existing Space uses different or paid hardware. Choose a matching free worker; billing was not changed"
+                "Existing Space uses paid hardware. Choose an existing CPU Basic worker; billing was not changed"
             )
     except HTTPError as exc:
         if exc.code != 404:
@@ -58,7 +54,7 @@ def deploy(config, inputs, stage):
         exc.close()
         try:
             # Let the provider check account eligibility, including existing/grandfathered entitlements.
-            # Both allowed hardware choices have no hourly price. No plan/credit API is called.
+            # This requests zero-hourly-cost CPU Basic. There is no subscription/upgrade API call.
             hf(
                 token,
                 "repos/create",
@@ -67,15 +63,15 @@ def deploy(config, inputs, stage):
                     "type": "space",
                     "name": config["space_name"],
                     "private": True,
-                    "sdk": sdk,
-                    "hardware": hardware_name,
+                    "sdk": "docker",
+                    "hardware": "cpu-basic",
                 },
             )
         except HTTPError as error:
             if error.code in {402, 403}:
                 error.close()
                 raise ValueError(
-                    "This account cannot create the requested free worker Space under current Hugging Face eligibility rules. No plan was purchased. Use an eligible Space or another remote host."
+                    "This account cannot create a CPU Basic compute Space under current Hugging Face eligibility rules. No plan was purchased. Use an existing eligible Space or another remote host."
                 ) from error
             raise
     stage("Installing the private worker secret and uploading application code only")
@@ -105,16 +101,6 @@ def deploy(config, inputs, stage):
         files[filename] = root / filename
     files["Dockerfile"] = root / "deploy" / "worker.Dockerfile"
     files["README.md"] = root / "deploy" / "space-README.md"
-    if free_gradio:
-        del files["Dockerfile"]
-        files.update(
-            {
-                "README.md": root / "deploy/gradio-README.md",
-                "app.py": root / "deploy/gradio-app.py",
-                "requirements.txt": root / "deploy/gradio-requirements.txt",
-                "packages.txt": root / "deploy/gradio-packages.txt",
-            }
-        )
     rows = [{"key": "header", "value": {"summary": "Deploy autonomous footage worker"}}]
     total = 0
     for path, file in files.items():
