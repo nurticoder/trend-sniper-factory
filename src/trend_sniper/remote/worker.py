@@ -275,7 +275,16 @@ def main():
                 gr.Markdown(
                     "# Trend Sniper Factory\nPrivate remote production worker. Use the local factory dashboard to submit jobs and review previews. No GPU allocation or paid inference calls are enabled."
                 )
-            app = gr.mount_gradio_app(app, info, path="/")
+            # On HF, automatic SSR can start a Node server on 7860 before Uvicorn binds it.
+            app = gr.mount_gradio_app(
+                app,
+                info,
+                path="/",
+                ssr_mode=False,
+                blocked_paths=[str(Path(os.environ["TSF_WORKER_DATA"]).resolve())],
+                run_history=False,
+                mcp_server=False,
+            )
         uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "7860")))
     finally:
         ollama.terminate()
