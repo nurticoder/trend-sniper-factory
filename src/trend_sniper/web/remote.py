@@ -74,12 +74,14 @@ def install(app, store):
                 raise ValueError("Unexpected service")
             return {
                 "connected": True,
+                "configured": True,
                 "space_id": config.get("space_id"),
                 "detail": "Private remote worker ready. Source footage, cuts and rendering stay in the cloud.",
             }
         except (OSError, ValueError):
             return {
                 "connected": False,
+                "configured": True,
                 "space_id": config.get("space_id"),
                 "detail": "Worker is starting, asleep or unavailable. Check deployment status; no local download fallback.",
             }

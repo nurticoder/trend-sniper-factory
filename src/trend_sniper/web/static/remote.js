@@ -15,7 +15,7 @@ export function automaticPlan(box,job,plan,open){
  const message=node('p');message.setAttribute('role','status');box.append(message);
  button.onclick=async()=>{button.disabled=true;try{
   const connection=await refresh();
-  if(!connection?.connected){message.textContent='Connect the cloud worker once in Factory services. Source footage will not be downloaded to this computer.';const link=node('a','Open cloud connection');link.href='#control';link.onclick=()=>document.getElementById('readiness').open=true;message.append(link);return;}
+  if(!connection?.connected && !connection?.configured){message.textContent='Connect the cloud worker once in Factory services. Source footage will not be downloaded to this computer.';const link=node('a','Open cloud connection');link.href='#control';link.onclick=()=>document.getElementById('readiness').open=true;message.append(link);return;}
   await open(await api('/api/content-plans/'+job+'/automatic','POST'));
  }catch(e){message.textContent=e.message;}finally{button.disabled=false;}};
 }

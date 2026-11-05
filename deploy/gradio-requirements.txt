@@ -1,2 +1,12 @@
-.[web,voice,worker]
+# HF installs this before copying application source. Import the source in app.py.
+Pillow==13.0.0
+imageio-ffmpeg==0.8.0
+fastapi==0.162.0
+uvicorn==0.54.0
+# Gradio's hosted MCP extra currently caps Pydantic at this version.
+pydantic==2.12.5
+starlette==1.10.0
+kokoro-onnx==0.4.7
+soundfile==0.14.0
+yt-dlp==2026.10.26
 gradio==6.31.0
