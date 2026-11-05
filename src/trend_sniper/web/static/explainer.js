@@ -92,6 +92,7 @@ async function watch(){
   const video=node('video');video.controls=true;video.preload='metadata';video.src=base+'short.mp4';
   const poster=node('img');poster.src=base+'cover.jpg';poster.alt=r.brief.title;
   box.replaceChildren(node('small','FINISHED PRIVATE PREVIEW / NOT PUBLISHED'),node('h2',r.brief.title),video,node('p','Paid APIs · $0 · '+r.technical.duration_seconds.toFixed(1)+' seconds · 720 × 1280 at 24fps'),link('Download MP4',base+'short.mp4'));
+  if(r.voice?.model && r.voice.model!=='af_heart')box.append(node('p','Archived preview: this video uses the earlier voice. New production uses your selected Kokoro voice.'));
   const packaging=node('details');packaging.append(node('summary','Title, thumbnail and upload copy'),poster,link('Open title and description',base+'metadata.txt'));box.append(packaging);
   const issues=node('section');issues.append(node('h3','Editorial review'));
   for(const issue of r.attention)issues.append(node('p',issue.scene+' · '+issue.reason));

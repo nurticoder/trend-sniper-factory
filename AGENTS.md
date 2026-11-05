@@ -13,6 +13,7 @@ The active source of truth is this Git checkout. Earlier ZIPs and copies in the 
 - Push verified increments to the configured GitHub remote when authorized access is available. The user has requested normal ongoing pushes for this project. Report failed pushes honestly; do not claim local commits are remote.
 - Before ending a development session, run the relevant checks and push passing work to GitHub. End with a 1–3 word push description. If checks fail or push is blocked, report that explicitly rather than claiming success.
 - Open a reviewable PR for completed work. Avoid unrelated changes, empty commits, artificial push counts, backdating and force pushes.
+- Use `main` as the default PR base. Avoid accumulating feature branches stacked on other unmerged features. Report clearly whether work is only pushed or actually merged into `main`.
 - Record the current milestone and a concrete next task in the PR so work can continue without replaying chat history.
 
 ## Implementation
