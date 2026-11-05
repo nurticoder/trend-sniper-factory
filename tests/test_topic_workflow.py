@@ -33,6 +33,11 @@ def wait(client, job):
 
 
 class TopicJourney(unittest.TestCase):
+    def setUp(self):
+        fixture = patch.dict("os.environ", {"TSF_LOCAL_FIXTURE_MODE": "1"})
+        fixture.start()
+        self.addCleanup(fixture.stop)
+
     def test_two_topics_prepare_review_and_reach_shared_assembler(self):
         for subject, response in [
             ("Physics mysteries", PHYSICS),

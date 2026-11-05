@@ -1,9 +1,10 @@
 import json
 import math
+import os
 from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from PIL import Image, ImageDraw
 from pydantic import BaseModel, ConfigDict, StrictBool
@@ -147,6 +148,30 @@ def install(app, store):
         return result
 
     def run(job, script, progress):
+        with store.connection() as db:
+            parent = db.execute('SELECT parent FROM production_runs WHERE job=?', (job,)).fetchone()
+        if parent and parent[0] and (root / parent[0] / 'remote.json').is_file() and not (root / job / 'remote.json').exists():
+            (root / job).mkdir(parents=True, exist_ok=True)
+            (root / job / 'remote.json').write_text((root / parent[0] / 'remote.json').read_text())
+        if "remote_setup" in script:
+            import re
+
+            from ..remote.deploy import deploy
+            if not re.fullmatch('[a-f0-9]{32}', str(script['remote_setup'])):
+                raise ValueError('Invalid private deployment reference')
+            pending = store.path.parent / ('remote-setup-' + script['remote_setup'] + '.json')
+            result = deploy(json.loads(pending.read_text()), store.path.parent, progress)
+            pending.unlink(missing_ok=True)
+            return result
+        if "remote_intent" in script:
+            from ..remote.client import execute
+            return execute(script["remote_intent"], root / job, store.path.parent, progress, voice=script.get("production_options",{}).get("voice","steady"))
+        if os.environ.get("TSF_LOCAL_FIXTURE_MODE") != "1" and any(k in script for k in ["explainer", "topic_prepare", "topic_render"]):
+            from ..remote.client import execute
+            if "explainer" in script:
+                return execute(script["explainer"], root / job, store.path.parent, progress, mode="curated")
+            source = script.get("topic_prepare") or script["topic_render"]["brief"]
+            return execute({"topic": source["topic"]}, root / job, store.path.parent, progress, voice=script.get("production_options",{}).get("voice","steady"))
         if "topic_prepare" in script:
             from ..production.topic_workflow import prepare
             return prepare(script["topic_prepare"], root / job, store.path.parent, progress, script.get("production_options",{}).get("voice","steady"))
@@ -258,13 +283,14 @@ def install(app, store):
                 has_report=item["status"] == "ready"
                 and (root / item["id"] / "production-report.json").is_file(),
                 source_plan=script.get("source_plan"),
+                remote=script.get("remote"),
                 has_review=item["status"] == "ready" and (root / item["id"] / "review.json").is_file(),
             )
             result.append(item)
         return result
 
     @app.get("/api/productions/{job}/{asset}")
-    def artifact(job: str, asset: str):
+    def artifact(job: str, asset: str, request: Request):
         if asset not in {
             "short.mp4",
             "metadata.txt",
@@ -286,6 +312,9 @@ def install(app, store):
             raise HTTPException(404)
         if ready[1]=='planned' and asset not in {'content-plan.json','script.json'}:
             raise HTTPException(404)
+        if (root / ready[0] / 'remote.json').is_file():
+            from .remote import streamed
+            return streamed(store.path.parent, root / ready[0], asset, request.headers.get('range'))
         path = root / ready[0] / asset
         if not path.is_file():
             raise HTTPException(404, "This run has no such artifact")

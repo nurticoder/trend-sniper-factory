@@ -25,8 +25,8 @@ function chosen(c){
     references(c));
   if(!c.format)return;
   const mode=document.createElement('select');mode.setAttribute('aria-label','Production format');mode.add(new Option('Original topic content','content'));mode.add(new Option('Explicit analytics report','analytics'));box.append(mode);
-  const make=el('button','Develop topic plan →');make.className='primary';box.append(make);
-  mode.onchange=()=>make.textContent=mode.value==='content'?'Develop topic plan →':'Produce analytics report →';
+  const make=el('button','Produce video automatically →');make.className='primary';box.append(make);
+  mode.onchange=()=>make.textContent=mode.value==='content'?'Produce video automatically →':'Produce analytics report →';
   const daily=el('button','Daily previews');daily.disabled=true;box.append(daily);
   let dailyKey=null;
   function updateDaily(key){
@@ -96,8 +96,9 @@ async function watch(key){
   box.hidden=false;box.replaceChildren(el('small','PRODUCTION'),el('h2',job.title));
   if(job.status==='planned'){
     const plan=await api('/api/productions/'+key+'/content-plan.json');
-    const {reviewPlan}=await import('./content.js?v=kokoro1');
-    reviewPlan(box,key,plan,async job=>{localStorage.setItem('activeProduction',job.id);await watch(job.id);});
+    const {automaticPlan}=await import('./remote.js?v=remote1');
+    automaticPlan(box,key,plan,async job=>{localStorage.setItem('activeProduction',job.id);await watch(job.id);});
+  }else if(job.status==='configured'){box.append(el('p','Remote deployment submitted. Check Factory services for cloud startup status.'));
   }else if(job.status==='ready'){
     const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);

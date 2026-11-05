@@ -1,10 +1,10 @@
 # Operating the production workers
 
-**Current default:** [Kokoro and reviewed footage workflow](../kokoro-footage-workflow.md). Discover now creates subject plans and prepares scene narration/footage for review before rendering. The detailed ranking/fiction worker notes below describe legacy components. Only an explicit analytics selection invokes the upload-statistics renderer.
+**Current default:** [Autonomous remote production](../autonomous-remote-production.md). Discover dispatches research, footage search/cutting, Kokoro speech and assembly to a connected private worker. The creator reviews a finished preview; missing footage triggers automatic revisions. No local media-production fallback is enabled. Deployment needs an eligible connected account and has not yet been demonstrated live. The detailed ranking/fiction worker notes below describe legacy components. Only an explicit analytics selection invokes the upload-statistics renderer.
 
 Select a niche on Discover and choose **Produce a Short**. Open **Workers, covers & release plan** under the finished preview or in Control room. The panel links to the complete draft pool, cover contact sheet, selected cover, dated observations, edit decisions and proposed release window. Old previews and the standalone Steam chart renderer still work. Worker reports belong to new discovery runs.
 
-## What executes
+## Legacy local components
 
 - Rankings and news build up to 100 distinct full cuts from the frozen channel sample. The editor measures source coverage, opening length, payoff, scene reading density and total runtime. These are deterministic editing variants of the observed story. A fact in a feed is evidence of a published upload and its observed metrics. Headline summaries do not independently verify events in the world.
 - Fiction requests batches of five distinct four-beat scripts from local Ollama, to a maximum of 100 and a six-minute batch budget. A separate local model call can judge the five strongest rubric finalists. The report records the actual count and fallback. Without Ollama, one built-in story is available. A 100-script pool produces one episode.

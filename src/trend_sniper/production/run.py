@@ -18,6 +18,9 @@ from .release import proposal
 def run_recipe(card, folder, inputs, stage, options=None):
     """Develop a topic plan by default; render only explicitly selected reporting formats."""
     if (options or {}).get('production_format','content') != 'analytics':
+        if os.environ.get("TSF_LOCAL_FIXTURE_MODE") != "1":
+            from ..remote.client import execute
+            return execute({"name": card["name"], "category": card["category"]}, folder, inputs, stage, voice=(options or {}).get("voice", "steady"))
         stage('Writing an original topic story and visual plan')
         topic=build(card)
         from .topic_workflow import prepare as prepare_topic
@@ -59,7 +62,7 @@ def run_recipe(card, folder, inputs, stage, options=None):
     assets, skipped = library(inputs / "media-library")
     retrieval = []
     # External queries use observed public titles only, never private scripts or notes.
-    if os.environ.get("TSF_COMMONS", "1") == "1" and topic["format"] in {
+    if os.environ.get("TSF_COMMONS", "1") == "1" and (os.environ.get("TSF_WORKER_PROCESS") == "1" or os.environ.get("TSF_LOCAL_FIXTURE_MODE") == "1") and topic["format"] in {
         "Countdown",
         "News desk",
     }:

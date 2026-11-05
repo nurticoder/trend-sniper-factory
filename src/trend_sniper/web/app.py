@@ -148,6 +148,8 @@ def create_app(db_path: Path | None = None):
     install(app, store)
     from .content import install as install_content
     install_content(app, store)
+    from .remote import install as install_remote
+    install_remote(app, store)
     from .niches import install as install_niches
     install_niches(app, store)
     from .readiness import install as install_readiness

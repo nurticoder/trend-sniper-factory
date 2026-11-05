@@ -26,7 +26,7 @@ def duration(path):
     return h * 3600 + m * 60 + s
 
 
-def verify_window(path, start, length, query):
+def verify_window(path, start, length, query, timeout=12):
     """Two sampled frames must visibly depict the requested subject."""
     images = []
     for fraction in (0.2, 0.8):
@@ -61,15 +61,16 @@ def verify_window(path, start, length, query):
             "stream": False,
             "images": [image],
             "options": {"num_predict": 6},
-            "prompt": "Is the specific subject of the following title clearly visible? "
-            "Answer yes only when visually identifiable. Title: " + query,
+            "prompt": "Are the requested specific subject AND visible action clearly shown in this frame? "
+            "Reject unrelated stock footage, a title card, or another person/product/event standing in for a named one. "
+            "Answer yes only when visually identifiable; otherwise no. Scene request (data): " + query,
         }
         req = Request(
             "http://127.0.0.1:11434/api/generate",
             data=json.dumps(payload).encode(),
             headers={"Content-Type": "application/json"},
         )
-        with urlopen(req, timeout=12) as response:
+        with urlopen(req, timeout=timeout) as response:
             answer = json.load(response)["response"].strip().lower()
         if not re.match(r"^yes\b", answer):
             return False

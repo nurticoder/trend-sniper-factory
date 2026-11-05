@@ -81,11 +81,12 @@ async function watch(){
   if(state.state!=='ready'){
    const jobs=await api('/api/productions'),job=jobs.find(x=>x.id===activeJob);
    box.replaceChildren(node('h2',state.state==='failed'?'Production needs attention':'Production in progress'),node('p',state.error || job?.stage || state.state));
+   if(state.state==='expired'){const rebuild=node('button','Rebuild video automatically');rebuild.onclick=async()=>{try{const job=await api('/api/content-plans/'+activeJob+'/automatic','POST');activeJob=job.id;localStorage.setItem('explainerJob',activeJob);watch();}catch(e){message(e.message);}};box.append(rebuild);}
    if(state.state==='failed'){
-    box.append(node('p','Revise the passage or select another inspected clip above. Unavailable material is not replaced by slides.'));
-    const retry=node('button','Retry saved inputs');retry.onclick=async()=>{try{const result=await api('/api/productions/'+activeJob+'/retry','POST');activeJob=result.id;localStorage.setItem('explainerJob',activeJob);watch();}catch(e){message(e.message);}};box.append(retry);
+    box.append(node('p','The factory tried source and footage alternatives. Retry the automatic job to continue; source media stays on the remote worker.'));
+    const retry=node('button','Retry automatic production');retry.onclick=async()=>{try{const result=await api('/api/productions/'+activeJob+'/retry','POST');activeJob=result.id;localStorage.setItem('explainerJob',activeJob);watch();}catch(e){message(e.message);}};box.append(retry);
    }
-   if(['queued','running'].includes(state.state))timer=setTimeout(watch,1500);return;
+   if(['queued','running','waiting_remote'].includes(state.state))timer=setTimeout(watch,2500);return;
   }
   const base='/api/productions/'+activeJob+'/',r=state.report;
   const video=node('video');video.controls=true;video.preload='metadata';video.src=base+'short.mp4';

@@ -45,6 +45,23 @@ class ProductionQueue:
                 "SELECT id FROM productions WHERE status='running'"
             ).fetchall()
             for (job,) in interrupted:
+                remote_pointer = (
+                    store.path.parent
+                    / (store.path.stem + "-factory")
+                    / job
+                    / "remote.json"
+                )
+                if remote_pointer.is_file():
+                    db.execute(
+                        "UPDATE productions SET status='queued',error='' WHERE id=?",
+                        (job,),
+                    )
+                    self.event(
+                        db,
+                        job,
+                        "Reconnecting to remote production after application restart",
+                    )
+                    continue
                 db.execute(
                     "UPDATE productions SET status='failed',error=? WHERE id=?",
                     (
@@ -96,11 +113,17 @@ class ProductionQueue:
                 "SELECT id,status FROM productions WHERE selection=?", (key,)
             ).fetchone()
             if old:
-                # Failed and cancelled jobs require an explicit retry, including daily runs.
-                return {"id": old[0]}
-            job = self.insert(db, key, script)
+                if old[1] == "expired":
+                    db.execute(
+                        "UPDATE productions SET selection=NULL WHERE id=?", (old[0],)
+                    )
+                    return_job = self.insert(db, key, script)
+                else:
+                    return {"id": old[0]}
+            else:
+                return_job = self.insert(db, key, script)
         self.wake()
-        return {"id": job}
+        return {"id": return_job}
 
     def retry(self, job):
         with self.store.connection() as db:
@@ -261,7 +284,9 @@ class ProductionQueue:
                     ).fetchone()[0]
                     if cancelled:
                         raise Cancelled()
-                    state = "planned" if result.get("delivery") == "plan" else "ready"
+                    state = {"plan": "planned", "configuration": "configured"}.get(
+                        result.get("delivery"), "ready"
+                    )
                     db.execute(
                         "UPDATE productions SET status=?,script=? WHERE id=?",
                         (state, json.dumps(result), job),
@@ -274,6 +299,8 @@ class ProductionQueue:
                         job,
                         "Topic plan ready; facts and footage need review"
                         if state == "planned"
+                        else "Remote worker deployment submitted; waiting for cloud startup"
+                        if state == "configured"
                         else "Private preview ready",
                     )
             except Cancelled:

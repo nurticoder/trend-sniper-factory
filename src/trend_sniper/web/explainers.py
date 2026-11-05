@@ -241,6 +241,41 @@ def install(app, store):
             else None
         )
         if report:
+            if (path / "remote.json").is_file():
+                from urllib.error import HTTPError
+
+                from ..remote.client import configuration, json_call
+
+                remote = json.loads((path / "remote.json").read_text())
+                try:
+                    state = json_call(
+                        configuration(store.path.parent), "/jobs/" + remote["id"]
+                    )
+                    if state["status"] == "expired":
+                        with store.connection() as db:
+                            db.execute("UPDATE productions SET status='expired' WHERE id=?", (job,))
+                        return {
+                            "state": "expired",
+                            "error": "Remote preview expired. Rebuild automatically from the saved subject.",
+                            "report": None,
+                        }
+                except HTTPError as exc:
+                    code = exc.code
+                    exc.close()
+                    if code in {404, 410}:
+                        with store.connection() as db:
+                            db.execute("UPDATE productions SET status='expired' WHERE id=?", (job,))
+                    return {
+                        "state": "expired" if code in {404, 410} else "waiting_remote",
+                        "error": "Remote preview unavailable. The factory can rebuild it from saved intent.",
+                        "report": None,
+                    }
+                except (OSError, ValueError):
+                    return {
+                        "state": "waiting_remote",
+                        "error": "Waiting for the remote worker to reconnect.",
+                        "report": None,
+                    }
             for shot in report["shots"]:
                 if (
                     shot["passage"] == "mechanism"
@@ -274,7 +309,27 @@ def install(app, store):
             raise HTTPException(
                 409, "Watch the exact completed preview and review its current manifest"
             )
-        snapshot(root / job)
+        if (root / job / "remote.json").is_file():
+            from ..remote.client import configuration, json_call
+
+            remote = json.loads((root / job / "remote.json").read_text())
+            try:
+                verified = json_call(
+                    configuration(store.path.parent),
+                    f"/jobs/{remote['id']}/verify",
+                    "POST",
+                )
+            except (OSError, ValueError) as exc:
+                raise HTTPException(
+                    409,
+                    "Remote preview could not be verified or has expired; rebuild and review the new preview",
+                ) from exc
+            if verified.get("manifest_hash") != body.manifest_hash:
+                raise HTTPException(
+                    409, "Remote artifacts changed or expired; review a rebuilt preview"
+                )
+        else:
+            snapshot(root / job)
         write_json(
             root / job / "editorial-approval.json",
             {

@@ -118,3 +118,7 @@ Production studio now accepts a topic independently of discovery. The initial cu
 ## Reviewed topic-to-footage milestone
 
 The creator selected Kokoro `af_heart` after auditions. New topic jobs prepare that local narration and scene-query footage candidates, then expose factual-source and visual review before dispatching to the existing smooth assembler. Native phrase captions replace per-frame image overlays. Missing footage or speech prevents this format from becoming a slideshow. Discovery remains seeded; general source research/fact checking and reliable arbitrary-topic footage coverage are unfinished. No publishing or volume expansion is included. See [current workflow and limits](../kokoro-footage-workflow.md).
+
+## Autonomous remote production correction
+
+The manual scene/material gate above did not meet the intended experience. The default now dispatches subject production to an authenticated remote worker that researches, checks source support, searches/inspects footage, cuts matching windows, revises unsuccessful scenes and assembles a complete preview. The desktop streams media and retains small review/control records only. Creator approval remains at the finished-preview stage. Worker code and bounded protocol/automation tests exist; actual hosted rendering is not verified until an eligible cloud account is connected. No paid plan is activated automatically. [Workflow, resource limits and current hosting prerequisite](../autonomous-remote-production.md).

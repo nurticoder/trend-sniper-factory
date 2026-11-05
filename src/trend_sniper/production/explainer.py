@@ -4,6 +4,7 @@ import hashlib
 import html
 import json
 import math
+import os
 import re
 import subprocess
 from datetime import UTC, datetime
@@ -319,12 +320,12 @@ def utterance(text, inputs, profile):
         raw.unlink(missing_ok=True)
 
 
-def command(args, timeout=90):
+def command(args, timeout=None):
     subprocess.run(
         [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-v", "error", *args],
         check=True,
         capture_output=True,
-        timeout=timeout,
+        timeout=timeout or (480 if os.environ.get('TSF_WORKER_PROCESS') == '1' else 90),
     )
 
 
@@ -756,7 +757,7 @@ def assemble(brief, assets, sources, search, folder, inputs, stage, curated=Fals
         + (
             " — "
             + (a.get("license_url") or "https://creativecommons.org/licenses/by/4.0/")
-            if a["license"] == "CC-BY-4.0"
+            if a["license"].startswith("CC-BY-")
             else ""
         )
         for a in assets.values()

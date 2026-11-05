@@ -60,6 +60,11 @@ GAMING = draft(
 
 
 class ProductionFormats(unittest.TestCase):
+    def setUp(self):
+        fixture = patch.dict("os.environ", {"TSF_LOCAL_FIXTURE_MODE": "1"})
+        fixture.start()
+        self.addCleanup(fixture.stop)
+
     def test_two_niches_reach_targeted_plans_through_normal_select_and_produce(self):
         for category, subject, response in [
             ("Education", "Physics mysteries", PHYSICS),

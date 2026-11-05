@@ -2,7 +2,7 @@ import {decisions} from './workers.js?v=narration1';
 const byId = id => document.getElementById(id);
 const node = (tag,text='',className='') => Object.assign(document.createElement(tag),{textContent:text,className});
 const link = (text,url) => Object.assign(node('a',text),{href:url});
-const names = {queued:'Waiting',running:'In production',ready:'Ready to review',planned:'Plan ready',failed:'Needs attention',cancelled:'Stopped'};
+const names = {queued:'Waiting',running:'In production',ready:'Ready to review',planned:'Saved draft',configured:'Cloud deployment',failed:'Needs attention',cancelled:'Stopped'};
 const phases = ['Sources','Scripts','Voice','Materials','Covers','Assembly','Review'];
 const phaseFor = stage => {
   if(/Private preview/.test(stage))return 6;
