@@ -87,7 +87,7 @@ function episode(job){
   const content=node('div','','episode-content');
   content.append(node('p',date(job.created_at),'episode-date'));
   if(job.status==='planned'){
-    content.append(node('h4','Topic plan ready'),node('p','Review narration, sources and footage before preview production.'),link('Continue scene review','/?plan='+job.id+'#discover'));
+    content.append(node('h4','Saved topic draft'),node('p','The factory will research again, find footage and build the preview remotely.'),link('Finish video automatically','/?plan='+job.id+'#discover'));
   }else if(job.status==='ready'){
     const base='/api/productions/'+job.id+'/';
     const video=Object.assign(node('video'),{controls:true,preload:'none',src:base+'short.mp4'});
@@ -167,7 +167,7 @@ async function services(){
     byId('service-grid').replaceChildren(...items.map(([name,state,detail])=>{
       const card=node('article');card.append(node('small',name),node('h3',state),node('p',detail));return card;
     }));
-    byId('readiness-summary').textContent='Local rendering · '+(data.youtube.channel?'saved channel':'preview mode');
+    byId('readiness-summary').textContent='Installed local tools · production uses the remote worker below';
   }catch(error){message(error.message);}finally{button.disabled=false;}
 }
 export function stopDesk(){clearTimeout(timer);generation++;}

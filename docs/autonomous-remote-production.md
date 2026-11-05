@@ -36,9 +36,11 @@ Use **Control room → Factory services → Remote production worker**. Enter th
 
 ## Evidence and current limits
 
-The targeted test set covers the existing 55 checks plus remote routing for Physics/Minecraft, absence of desktop media creation, streaming ranges, private token handling, remote authentication, exact artifacts, expiry, restart recovery, reconnect without duplicate submission, paid-eligibility refusal, invented quote rejection, failed-query feedback, exclusion of standard-license YouTube downloads and automatic scene revision/cache reuse before compilation. Provider/model/compiler behavior is controlled in these protocol/automation tests; they do not establish finished-video quality.
+The targeted test set passes 69 checks: the existing 55 plus remote routing for Physics/Minecraft, absence of desktop media creation, streaming ranges, private token handling, remote authentication, exact artifacts, expiry, restart recovery, reconnect without duplicate submission, deployment-source isolation, paid-eligibility refusal, invented quote rejection, failed-query feedback, exclusion of standard-license YouTube downloads, source license version preservation and automatic scene revision/cache reuse before compilation. Provider/model/compiler behavior is controlled in these protocol/automation tests; they do not establish finished-video quality.
 
 A live **text-only** lookup returned Minecraft Wiki's Redstone Repeater reference. No source footage or new large model was downloaded to the Mac during this work. No cloud account/worker was connected at implementation time, so the full hosted container/model/retrieval/render path and the complained-about Minecraft episode have **not** been demonstrated live. A hosting connection and eligible compute access are required before that verification; passing fixture tests is not a finished video.
+
+Browser verification on port 8765 opened the existing failed Minecraft draft, selected **Finish video automatically**, and confirmed the disconnected state routes to the private cloud connection form without starting a local media job. Existing preview records remained present. Account setup reached Hugging Face's required password identity checkpoint; no token was created and no Space was deployed.
 
 Discovery remains seeded and is not expanded here. The older local graphics fixtures, existing previews and explicit legacy analytics components remain available; legacy online footage lookup is disabled on the desktop. Publishing is unchanged and disabled for these footage previews.
 
