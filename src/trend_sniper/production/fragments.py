@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 import re
 import subprocess
 from urllib.request import Request, urlopen
@@ -63,8 +64,19 @@ def verify_window(path, start, length, query, timeout=12):
             "options": {"num_predict": 6},
             "prompt": "Are the requested specific subject AND visible action clearly shown in this frame? "
             "Reject unrelated stock footage, a title card, or another person/product/event standing in for a named one. "
-            "Answer yes only when visually identifiable; otherwise no. Scene request (data): " + query,
+            "Answer yes only when visually identifiable; otherwise no. Scene request (data): "
+            + query,
         }
+        if (
+            os.environ.get("TSF_FREE_GRADIO") == "1"
+            and os.environ.get("TSF_WORKER_PROCESS") == "1"
+        ):
+            from ..remote.gpu_vision import inspect
+
+            answer = inspect(base64.b64decode(image), payload["prompt"]).strip().lower()
+            if not re.match(r"^yes\b", answer):
+                return False
+            continue
         req = Request(
             "http://127.0.0.1:11434/api/generate",
             data=json.dumps(payload).encode(),

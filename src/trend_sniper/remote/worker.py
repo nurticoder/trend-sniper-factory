@@ -36,7 +36,9 @@ def models_ready():
     from .editorial import WRITER
 
     # These downloads happen only on the remote machine, at most once per container lifecycle.
-    for model in [WRITER, "moondream:latest"]:
+    for model in [WRITER] + (
+        [] if os.environ.get("TSF_FREE_GRADIO") == "1" else ["moondream:latest"]
+    ):
         subprocess.run(
             ["ollama", "pull", model], check=True, capture_output=True, timeout=900
         )
@@ -269,6 +271,9 @@ def main():
                 time.sleep(1)
         app = create_worker()
         if os.environ.get("TSF_FREE_GRADIO") == "1":
+            from .gpu_vision import load
+
+            load()
             import gradio as gr
 
             with gr.Blocks() as info:

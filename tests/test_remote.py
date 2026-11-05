@@ -208,6 +208,22 @@ class DesktopRemotePath(unittest.TestCase):
 
 
 class CloudProtocol(unittest.TestCase):
+    def test_gpu_checker_requires_remote_setup_and_propagates_free_quota_refusal(self):
+        from trend_sniper.remote import gpu_vision
+
+        with (
+            patch.dict(os.environ, {"TSF_WORKER_PROCESS": "0"}),
+            self.assertRaisesRegex(ValueError, "restricted"),
+        ):
+            gpu_vision.load()
+        with (
+            patch.object(
+                gpu_vision, "verify_frame", side_effect=RuntimeError("Quota exceeded")
+            ),
+            self.assertRaisesRegex(ValueError, "quota exhausted"),
+        ):
+            gpu_vision.inspect(b"fixture", "Requested subject and action")
+
     def test_free_gradio_requests_only_zero_cost_host_without_billing_calls(self):
         with tempfile.TemporaryDirectory() as tmp:
             calls = []
