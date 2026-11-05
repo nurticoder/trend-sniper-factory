@@ -4,6 +4,8 @@ The project source is MIT. This does not relicense dependencies, game trademarks
 
 ## Remote production components
 
+The optional Gradio host wrapper uses [Gradio](https://github.com/gradio-app/gradio) (Apache-2.0). Its UI is informational; production uses the existing private worker API.
+
 The optional worker installs [yt-dlp](https://github.com/yt-dlp/yt-dlp) separately (Unlicense for its own code; dependencies retain their notices) and uses [Ollama](https://github.com/ollama/ollama) (MIT runtime, with component licenses retained). The remote writer uses [Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) and visual checks use [Moondream 2](https://huggingface.co/vikhyatk/moondream2), whose upstream model cards declare Apache-2.0. Models/runtime binaries are downloaded to the remote container, not vendored into this repository or pulled onto the desktop by the application. Codec, operating-system and transitive dependencies retain their own licenses, including FFmpeg/GPL obligations if images/binaries are redistributed.
 
 Commons, Internet Archive, NASA and eligible YouTube sources have individual permission records; the downloader's software license does not grant reuse rights to videos. Source-declared CC0/CC BY material and NASA informational footage retain creator/source/license information, original timestamps, hashes and modification disclosures. Standard YouTube uploads are excluded; no owner OAuth token, cookies or DRM bypass is used to obtain third-party footage. Metadata and automated checks do not guarantee the uploader owns all underlying rights. The creator still reviews the finished output before any release.

@@ -208,6 +208,66 @@ class DesktopRemotePath(unittest.TestCase):
 
 
 class CloudProtocol(unittest.TestCase):
+    def test_free_gradio_requests_only_zero_cost_host_without_billing_calls(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            calls = []
+
+            def network(token, path, method="GET", body=None, ndjson=False):
+                calls.append((path, method, body))
+                if path == "whoami-v2":
+                    return {"name": "creator"}
+                if path == "spaces/creator/worker" and len(calls) == 2:
+                    raise HTTPError(
+                        "https://huggingface.co/api/" + path, 404, "missing", {}, None
+                    )
+                if path == "spaces/creator/worker":
+                    return {"host": "creator-worker.hf.space"}
+                return {}
+
+            with (
+                patch("trend_sniper.remote.deploy.hf", side_effect=network),
+                patch(
+                    "trend_sniper.remote.deploy.subprocess.run",
+                    return_value=type(
+                        "Tracked", (), {"stdout": "src/trend_sniper/remote/client.py\0"}
+                    )(),
+                ),
+            ):
+                deploy(
+                    {
+                        "hf_token": "fixture",
+                        "space_name": "worker",
+                        "key": "x" * 64,
+                        "hosting": "zero-gradio",
+                    },
+                    Path(tmp),
+                    lambda _: None,
+                )
+            creation = next(body for path, _, body in calls if path == "repos/create")
+            self.assertEqual(
+                (creation["sdk"], creation["hardware"], creation["private"]),
+                ("gradio", "zero-a10g", True),
+            )
+            commit = next(body for path, _, body in calls if "/commit/" in path)
+            paths = [
+                json.loads(row)["value"].get("path") for row in commit.splitlines()
+            ]
+            self.assertIn("app.py", paths)
+            self.assertIn("requirements.txt", paths)
+            self.assertNotIn("Dockerfile", paths)
+            self.assertFalse(
+                any("billing" in path or "credits" in path for path, _, _ in calls)
+            )
+
+    def test_gradio_runtime_cannot_install_on_desktop(self):
+        from trend_sniper.remote.runtime import ensure_ollama
+
+        with (
+            patch.dict(os.environ, {"TSF_WORKER_PROCESS": "0"}),
+            self.assertRaisesRegex(ValueError, "restricted"),
+        ):
+            ensure_ollama("/unused")
+
     def test_deployment_uploads_only_source_and_activates_private_cpu_worker(self):
         with tempfile.TemporaryDirectory() as tmp:
             calls = []

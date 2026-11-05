@@ -2,6 +2,7 @@
 
 import json
 import secrets
+from typing import Literal
 from urllib.error import HTTPError
 
 from fastapi import HTTPException
@@ -14,6 +15,7 @@ from ..remote import client
 class Connection(BaseModel):
     model_config = ConfigDict(extra="forbid")
     token: SecretStr
+    hosting: Literal["cpu-basic", "zero-gradio"] = "zero-gradio"
     space_name: str = Field(
         default="trend-sniper-worker", pattern="^[a-z0-9][a-z0-9-]{3,60}$"
     )
@@ -95,6 +97,7 @@ def install(app, store):
             "space_name": body.space_name,
             "key": secrets.token_hex(32),
             "url": "",
+            "hosting": body.hosting,
         }
         path = client.config_path(inputs)
         if path.is_file():

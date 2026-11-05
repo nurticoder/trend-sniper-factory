@@ -1,0 +1,2 @@
+.[web,voice,worker]
+gradio==6.31.0

@@ -57,6 +57,10 @@ def create_worker(root=None, executor=None):
             raise HTTPException(401, "Worker authentication required")
 
     def run(job, payload, stage):
+        from ..production.kokoro import install as install_voice
+
+        stage("Checking the selected Kokoro voice on the remote host")
+        install_voice(Path(os.environ.get("TSF_VOICE_DATA", "/opt/factory-voice")))
         inputs = root / job / "inputs"
         inputs.mkdir(parents=True, exist_ok=True)
         voices = inputs / "voices"
@@ -242,6 +246,13 @@ def create_worker(root=None, executor=None):
 def main():
     if os.environ.get("TSF_WORKER_PROCESS") != "1":
         raise SystemExit("This entry point runs only in the remote worker container")
+    if os.environ.get("TSF_FREE_GRADIO") == "1":
+        from .runtime import ensure_ollama
+
+        executable = ensure_ollama(os.environ["TSF_WORKER_DATA"])
+        os.environ["PATH"] = (
+            str(Path(executable).parent) + os.pathsep + os.environ["PATH"]
+        )
     ollama = subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL)
     import uvicorn
 
@@ -256,9 +267,16 @@ def main():
                     break
             except OSError:
                 time.sleep(1)
-        uvicorn.run(
-            create_worker(), host="0.0.0.0", port=int(os.environ.get("PORT", "7860"))
-        )
+        app = create_worker()
+        if os.environ.get("TSF_FREE_GRADIO") == "1":
+            import gradio as gr
+
+            with gr.Blocks() as info:
+                gr.Markdown(
+                    "# Trend Sniper Factory\nPrivate remote production worker. Use the local factory dashboard to submit jobs and review previews. No GPU allocation or paid inference calls are enabled."
+                )
+            app = gr.mount_gradio_app(app, info, path="/")
+        uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "7860")))
     finally:
         ollama.terminate()
 
