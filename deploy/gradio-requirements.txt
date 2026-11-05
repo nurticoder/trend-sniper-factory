@@ -1,5 +1,6 @@
 # HF installs this before copying application source. Import the source in app.py.
-Pillow==13.0.0
+# Gradio currently requires Pillow <13; the desktop keeps its existing version.
+Pillow==12.3.0
 imageio-ffmpeg==0.8.0
 fastapi==0.162.0
 uvicorn==0.54.0
