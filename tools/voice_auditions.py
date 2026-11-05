@@ -39,7 +39,7 @@ def main():
     sf.write(args.out / "kokoro-raw.wav", audio, rate)
     (args.out / "script.txt").write_text(SCRIPT)
     # Constant child entry point, text through stdin; no application configuration changes.
-    entry = "from pathlib import Path; import sys; from trend_sniper.production.narration import synthesize; synthesize(sys.stdin.read(),Path(sys.argv[1]),Path('local-data'))"
+    entry = "from pathlib import Path; import sys; from trend_sniper.production.legacy_piper import synthesize; synthesize(sys.stdin.read(),Path(sys.argv[1]),Path('local-data'))"
     subprocess.run(
         [
             str(args.piper_python.absolute()),

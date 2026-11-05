@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
+from trend_sniper.production.content import ContentPlan
 from trend_sniper.production.editor import write_and_select
 from trend_sniper.web.app import create_app
 from trend_sniper.web.discovery import SNAPSHOT
@@ -76,6 +77,14 @@ class ProductionFormats(unittest.TestCase):
                         "trend_sniper.production.content.generate",
                         return_value=copy.deepcopy(response),
                     ) as model,
+                    patch(
+                        "trend_sniper.production.topic_workflow.commons.search_footage",
+                        return_value=[],
+                    ),
+                    patch(
+                        "trend_sniper.production.topic_workflow.utterance",
+                        side_effect=ValueError("No voice in this fixture"),
+                    ),
                     patch("trend_sniper.production.run.render") as renderer,
                     patch("trend_sniper.production.run.write_and_select") as analytics,
                 ):
@@ -126,10 +135,12 @@ class ProductionFormats(unittest.TestCase):
                         f"/api/productions/{job}/content-plan.json"
                     ).json()
                     self.assertEqual(plan["topic"], response["topic"])
-                    self.assertEqual(plan["scenes"], response["scenes"])
                     self.assertEqual(
-                        plan["review_status"], "needs_fact_and_footage_review"
+                        plan["scenes"],
+                        ContentPlan.model_validate(response).model_dump()["scenes"],
                     )
+                    self.assertEqual(len(plan["preparation"]), 3)
+                    self.assertTrue(all(s["attention"] for s in plan["preparation"]))
                     self.assertEqual(
                         client.get(f"/api/productions/{job}/short.mp4").status_code, 404
                     )

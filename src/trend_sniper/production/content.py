@@ -12,6 +12,7 @@ class VisualBrief(BaseModel):
     subject: str = Field(min_length=3, max_length=240)
     action: str = Field(min_length=3, max_length=240)
     purpose: str = Field(min_length=3, max_length=300)
+    search_query: str = Field(default="", max_length=100)
 
 
 class Scene(BaseModel):
@@ -63,6 +64,7 @@ def develop(card):
         "For a game explain a relevant mechanic or useful strategy; for an educational subject explain a phenomenon. "
         "Write 3-5 consecutive narration passages and plan visuals with each passage. "
         "Every visual must name its subject, visible action and explanatory purpose. "
+        "Give each visual a search_query of 2-5 concrete subject/action terms for footage retrieval. "
         "Do not write about YouTube, creators, uploads, view counts, trending videos or competitor performance. "
         "Do not reuse a generic fictional puzzle across niches. Avoid invented game updates, facts or statistics. "
         "Explain an established, modest concept with concrete steps and a specific answer. "

@@ -87,7 +87,7 @@ function episode(job){
   const content=node('div','','episode-content');
   content.append(node('p',date(job.created_at),'episode-date'));
   if(job.status==='planned'){
-    content.append(node('h4','Topic plan ready'),node('p','Draft narration and visual briefs require fact and footage review. No video rendered.'),link('Inspect reusable plan','/api/productions/'+job.id+'/content-plan.json'));
+    content.append(node('h4','Topic plan ready'),node('p','Review narration, sources and footage before preview production.'),link('Continue scene review','/?plan='+job.id+'#discover'));
   }else if(job.status==='ready'){
     const base='/api/productions/'+job.id+'/';
     const video=Object.assign(node('video'),{controls:true,preload:'none',src:base+'short.mp4'});
@@ -163,7 +163,7 @@ async function services(){
       ['Media search',data.commons.enabled?'Enabled':'Disabled',data.commons.detail],
       ['Cleared library',data.library.entries+' catalog entries',data.library.error||data.library.detail],
       ['YouTube',data.youtube.channel?'Saved connection':'Not connected',data.youtube.detail],
-      ['Voiceover',data.narration.available?'Local voice ready':'Captions fallback',data.narration.detail],['Analytics','Not connected',data.analytics.detail]];
+      ['Voiceover',data.narration.available?'Kokoro ready':'Narration unavailable',data.narration.detail],['Analytics','Not connected',data.analytics.detail]];
     byId('service-grid').replaceChildren(...items.map(([name,state,detail])=>{
       const card=node('article');card.append(node('small',name),node('h3',state),node('p',detail));return card;
     }));
@@ -199,14 +199,14 @@ async function voicePreference(){
   try{
     const data=await request('/api/production-preferences');
     byId('voice-mode').value=data.narration;byId('voice-mode').disabled=false;
-    byId('voice-status').textContent='Saved with each new job. Existing previews and retry settings stay unchanged.';
+    byId('voice-status').textContent='Saved for new analytics jobs. Topic explainers require Kokoro. Existing previews and retries stay unchanged.';
   }catch(error){byId('voice-status').textContent=error.message;}
 }
 byId('voice-mode').onchange=async()=>{
   const input=byId('voice-mode');input.disabled=true;
   try{
     await request('/api/production-preferences','PUT',{narration:input.value});
-    byId('voice-status').textContent=input.value==='required'?'New jobs stop if speech is unavailable.':'Saved for new jobs. Automatic mode reports any fallback in the preview.';
+    byId('voice-status').textContent=input.value==='required'?'New analytics jobs stop if speech is unavailable.':'Saved for analytics jobs. Topic explainers always require Kokoro.';
   }catch(error){byId('voice-status').textContent=error.message;}finally{input.disabled=false;}
 };
 voicePreference();

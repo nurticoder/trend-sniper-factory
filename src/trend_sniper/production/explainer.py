@@ -27,8 +27,8 @@ SOURCES = [
 ]
 ASSETS = ["Moving_Water_in_Space-8K", "Fluids_on_the_Space_Station"]
 PROFILES = {
-    "steady": {"label": "LJ English · steady", "speed": "1.0"},
-    "brisk": {"label": "LJ English · brisk", "speed": "0.88"},
+    "steady": {"label": "Kokoro af_heart · steady", "speed": "0.95"},
+    "brisk": {"label": "Kokoro af_heart · brisk", "speed": "1.05"},
 }
 
 
@@ -82,17 +82,21 @@ class Shot(BaseModel):
     end: float = Field(gt=0, le=90)
     focus_x: float = Field(default=0.5, ge=0.2, le=0.8)
     crop_height: float = Field(default=1, ge=0.5, le=1)
-    subject: str = Field(min_length=4, max_length=300)
-    action: str = Field(min_length=4, max_length=300)
-    purpose: str = Field(min_length=4, max_length=500)
+    subject: str = Field(min_length=3, max_length=300)
+    action: str = Field(min_length=3, max_length=300)
+    purpose: str = Field(min_length=3, max_length=500)
     treatment: str = Field(default="focus", pattern="^(contain|focus|orbit)$")
 
     @model_validator(mode="after")
     def bounds(self):
         if self.end <= self.start:
             raise ValueError("Shot interval must move forward")
-        if self.asset not in ASSETS + ["original-orbit"]:
-            raise ValueError("Asset is not in the cleared pilot collection")
+        if self.asset not in ASSETS + ["original-orbit"] and not re.fullmatch(
+            r"media-[a-f0-9]{64}", self.asset
+        ):
+            raise ValueError(
+                "Asset identity is not a cleared collection ID or media hash"
+            )
         if (self.asset == "original-orbit") != (self.treatment == "orbit"):
             raise ValueError("Diagram identity and treatment must agree")
         return self
@@ -101,7 +105,7 @@ class Shot(BaseModel):
 class Passage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str = Field(pattern="^[a-z0-9-]{1,40}$")
-    narration: str = Field(min_length=15, max_length=450)
+    narration: str = Field(min_length=10, max_length=450)
     claim_sources: list[int] = Field(min_length=1, max_length=2)
     shots: list[Shot] = Field(min_length=1, max_length=4)
     pause_after: float = Field(default=0.25, ge=0.1, le=0.8)
@@ -110,6 +114,7 @@ class Passage(BaseModel):
 class Brief(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: int = 1
+    source_count: int = Field(default=2, ge=1, le=20)
     topic: str = Field(min_length=5, max_length=200)
     title: str = Field(min_length=5, max_length=100)
     promise: str = Field(min_length=10, max_length=500)
@@ -123,7 +128,11 @@ class Brief(BaseModel):
     def references(self):
         if len({p.id for p in self.passages}) != len(self.passages):
             raise ValueError("Passage IDs must be unique")
-        if any(s not in [0, 1] for p in self.passages for s in p.claim_sources):
+        if any(
+            not 0 <= s < self.source_count
+            for p in self.passages
+            for s in p.claim_sources
+        ):
             raise ValueError("Claim source is not in the research packet")
         footage = sum(
             s.asset != "original-orbit" for p in self.passages for s in p.shots
@@ -281,24 +290,7 @@ def pilot(topic="Why does water form a ball in space?", voice="steady"):
 
 
 def speech(text, output, inputs, profile):
-    args = [
-        narration.sys.executable,
-        "-c",
-        "import onnxruntime; onnxruntime.disable_telemetry_events(); import runpy; runpy.run_module('piper',run_name='__main__')",
-        "-m",
-        str(narration.voice_folder(inputs) / (narration.VOICE + ".onnx")),
-        "-c",
-        str(narration.voice_folder(inputs) / (narration.VOICE + ".onnx.json")),
-        "-f",
-        str(output),
-        "--length-scale",
-        PROFILES[profile]["speed"],
-        "--sentence-silence",
-        ".16",
-    ]
-    subprocess.run(
-        args, input=text, text=True, capture_output=True, check=True, timeout=40
-    )
+    narration.synthesize(text, output, inputs, speed=float(PROFILES[profile]["speed"]))
 
 
 def utterance(text, inputs, profile):
@@ -308,7 +300,7 @@ def utterance(text, inputs, profile):
         )
     cache = inputs / "explainer-cache" / "speech"
     cache.mkdir(parents=True, exist_ok=True)
-    signature = key([text, profile, narration.FILES, "speech-v1"])
+    signature = key([text, profile, narration.FILES, "kokoro-speech-v1"])
     output = cache / (signature + ".wav")
     receipt = cache / (signature + ".json")
     if (
@@ -402,6 +394,70 @@ def diagram(path, seconds):
     return path / "short.mp4"
 
 
+def prepare_shot(edit, assets, cache):
+    """Cache one smooth shot independently of narration and other scenes."""
+    signature = key(
+        [
+            {
+                k: edit[k]
+                for k in (
+                    "asset",
+                    "source_start",
+                    "duration",
+                    "treatment",
+                    "focus_x",
+                    "crop_height",
+                )
+            },
+            assets.get(edit["asset"], {}).get("sha256"),
+            "vertical-v2",
+        ]
+    )
+    out = cache / (signature + ".mp4")
+    receipt = out.with_suffix(".json")
+    if not (
+        out.exists()
+        and receipt.exists()
+        and digest(out) == json.loads(receipt.read_text())["sha256"]
+    ):
+        if edit["treatment"] == "orbit":
+            generated = diagram(cache / ("diagram-" + signature), edit["duration"])
+            out.write_bytes(generated.read_bytes())
+        else:
+            # Preserve the whole subject; blurred moving background fills the vertical canvas.
+            filters = "[0:v]split=2[back][front];[back]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,boxblur=24:2[bg];[front]scale=720:980:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,fps=24,setsar=1[v]"
+            if edit["treatment"] == "focus":
+                filters = f"[0:v]crop=iw:trunc(ih*{edit['crop_height']}/2)*2:0:0,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280:x='min(max(iw*{edit['focus_x']}-360,0),iw-720)',fps=24,setsar=1[v]"
+            command(
+                [
+                    "-protocol_whitelist",
+                    "file,pipe",
+                    "-ss",
+                    str(edit["source_start"]),
+                    "-i",
+                    assets[edit["asset"]]["path"],
+                    "-t",
+                    str(edit["duration"]),
+                    "-filter_complex",
+                    filters,
+                    "-map",
+                    "[v]",
+                    "-an",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "fast",
+                    "-crf",
+                    "20",
+                    "-pix_fmt",
+                    "yuv420p",
+                    str(out),
+                ]
+            )
+        write_json(receipt, {"sha256": digest(out), "edit": edit})
+    return out
+
+
 def technical_review(folder, planned_seconds):
     result = subprocess.run(
         [
@@ -425,6 +481,8 @@ def technical_review(folder, planned_seconds):
     actual = hours * 3600 + minutes * 60 + seconds
     if abs(actual - planned_seconds) > 0.15:
         raise ValueError("Encoded duration disagrees with the narration timeline")
+    if "Audio:" not in log:
+        raise ValueError("Encoded preview has no audio stream")
     return {
         "decode": "passed",
         "dimensions": [720, 1280],
@@ -505,6 +563,26 @@ def produce(payload, folder, inputs, stage):
                 "status": "acquired",
             }
         )
+    return assemble(brief, assets, sources, search, folder, inputs, stage, curated=True)
+
+
+def assemble(brief, assets, sources, search, folder, inputs, stage, curated=False):
+    """Shared smooth assembler. Asset IDs are resolved only from a frozen reviewed packet."""
+    root = inputs / "explainer-cache"
+    root.mkdir(exist_ok=True)
+    work = root / ("runs-" + folder.name)
+    work.mkdir(exist_ok=True)
+    for passage in brief.passages:
+        if any(i >= len(sources) for i in passage.claim_sources):
+            raise ValueError("Passage claim has no supporting source record")
+        for shot in passage.shots:
+            if shot.asset == "original-orbit" and curated:
+                continue
+            asset = assets.get(shot.asset)
+            if not asset or digest(Path(asset["path"])) != asset["sha256"]:
+                raise ValueError(
+                    "Selected footage missing or changed; review a replacement"
+                )
     stage("Recording selected narration and measuring timing")
     clips = []
     edits = []
@@ -561,66 +639,7 @@ def produce(payload, folder, inputs, stage):
     cache = root / "shots"
     cache.mkdir(exist_ok=True)
     for i, edit in enumerate(edits):
-        signature = key(
-            [
-                {
-                    k: edit[k]
-                    for k in (
-                        "asset",
-                        "source_start",
-                        "duration",
-                        "treatment",
-                        "focus_x",
-                        "crop_height",
-                    )
-                },
-                assets.get(edit["asset"], {}).get("sha256"),
-                "vertical-v2",
-            ]
-        )
-        out = cache / (signature + ".mp4")
-        receipt = out.with_suffix(".json")
-        if not (
-            out.exists()
-            and receipt.exists()
-            and digest(out) == json.loads(receipt.read_text())["sha256"]
-        ):
-            if edit["treatment"] == "orbit":
-                generated = diagram(cache / ("diagram-" + signature), edit["duration"])
-                out.write_bytes(generated.read_bytes())
-            else:
-                # Preserve the whole subject; blurred moving background fills the vertical canvas.
-                filters = "[0:v]split=2[back][front];[back]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,boxblur=24:2[bg];[front]scale=720:980:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,fps=24,setsar=1[v]"
-                if edit["treatment"] == "focus":
-                    filters = f"[0:v]crop=iw:trunc(ih*{edit['crop_height']}/2)*2:0:0,scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280:x='min(max(iw*{edit['focus_x']}-360,0),iw-720)',fps=24,setsar=1[v]"
-                command(
-                    [
-                        "-protocol_whitelist",
-                        "file,pipe",
-                        "-ss",
-                        str(edit["source_start"]),
-                        "-i",
-                        assets[edit["asset"]]["path"],
-                        "-t",
-                        str(edit["duration"]),
-                        "-filter_complex",
-                        filters,
-                        "-map",
-                        "[v]",
-                        "-an",
-                        "-c:v",
-                        "libx264",
-                        "-preset",
-                        "fast",
-                        "-crf",
-                        "20",
-                        "-pix_fmt",
-                        "yuv420p",
-                        str(out),
-                    ]
-                )
-            write_json(receipt, {"sha256": digest(out), "edit": edit})
-        segments.append(out)
+        segments.append(prepare_shot(edit, assets, cache))
     # Explicit timeline offsets are separate from source intervals.
     manifest_list = work / "concat.txt"
     manifest_list.write_text(
@@ -685,65 +704,11 @@ def produce(payload, folder, inputs, stage):
             caption_times.append((at, end, line))
             at = end
     (folder / "captions.srt").write_text("\n".join(captions))
-    # Burn phrase captions through a lightweight transparent frame stream, preserving 24fps footage.
-    overlays = work / "captions.mov"
-    ff = imageio_ffmpeg.get_ffmpeg_exe()
-    proc = subprocess.Popen(
-        [
-            ff,
-            "-y",
-            "-v",
-            "error",
-            "-f",
-            "rawvideo",
-            "-pix_fmt",
-            "rgba",
-            "-s",
-            "720x1280",
-            "-r",
-            "24",
-            "-i",
-            "pipe:0",
-            "-c:v",
-            "qtrle",
-            str(overlays),
-        ],
-        stdin=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-    )
-    try:
-        for frame in range(math.ceil(clock * 24)):
-            at = frame / 24
-            line = next((line for a, b, line in caption_times if a <= at < b), "")
-            image = Image.new("RGBA", (720, 1280))
-            d = ImageDraw.Draw(image)
-            if line:
-                d.rounded_rectangle((28, 1005, 692, 1185), 18, fill=(7, 14, 24, 218))
-                wrapped(d, line, 1030, 39, "white", 600)
-            d.text(
-                (30, 50),
-                "WATER / EXPLAINED",
-                font=font(22),
-                fill="white",
-                stroke_width=2,
-                stroke_fill="black",
-            )
-            d.text(
-                (30, 1220),
-                "FOOTAGE: NASA · ORIGINAL NARRATION",
-                font=font(17),
-                fill="white",
-                stroke_width=1,
-                stroke_fill="black",
-            )
-            proc.stdin.write(image.tobytes())
-        proc.stdin.close()
-        if proc.wait() != 0:
-            raise ValueError("Caption encoder failed")
-    except BaseException:
-        proc.kill()
-        proc.wait()
-        raise
+    # Native subtitle rendering avoids generating a full RGBA image for every frame.
+    from .captions import subtitle_filter, write_ass
+
+    subtitle_path = work / "captions.ass"
+    write_ass(caption_times, subtitle_path)
     for asset in assets.values():
         if digest(Path(asset["path"])) != asset["sha256"]:
             raise ValueError(
@@ -755,15 +720,13 @@ def produce(payload, folder, inputs, stage):
             "-i",
             str(base),
             "-i",
-            str(overlays),
-            "-i",
             str(bed),
             "-filter_complex",
-            "[0:v][1:v]overlay=0:0[v]",
+            "[0:v]" + subtitle_filter(subtitle_path) + "[v]",
             "-map",
             "[v]",
             "-map",
-            "2:a",
+            "1:a",
             "-t",
             str(clock),
             "-c:v",
@@ -785,18 +748,28 @@ def produce(payload, folder, inputs, stage):
     )
     command(["-xerror", "-i", str(folder / "short.mp4"), "-f", "null", "-"])
     credits = "\n".join(
-        a["source"] + " — " + a["credit"] + " — " + a["license"]
+        a["source"]
+        + " — "
+        + a["credit"]
+        + " — "
+        + a["license"]
+        + (
+            " — "
+            + (a.get("license_url") or "https://creativecommons.org/licenses/by/4.0/")
+            if a["license"] == "CC-BY-4.0"
+            else ""
+        )
         for a in assets.values()
     )
     metadata = {
         "title": brief.title,
         "description": brief.promise
         + "\n\nSources:\n"
-        + "\n".join(SOURCES)
+        + "\n".join(record["url"] for record in sources)
         + "\n\n"
         + credits
-        + "\nOriginal synthetic narration and schematic. No NASA endorsement.",
-        "hashtags": ["Science", "Space", "Shorts"],
+        + "\nOriginal synthetic narration (Kokoro af_heart). Footage trimmed and reframed; no endorsement implied.",
+        "hashtags": ["Shorts"],
         "audience": "needs_review",
     }
     write_json(folder / "metadata.json", metadata)
@@ -811,15 +784,11 @@ def produce(payload, folder, inputs, stage):
     write_json(folder / "script.json", script)
     write_json(folder / "brief.json", brief.model_dump())
     (folder / "narration.wav").write_bytes(voice_path.read_bytes())
-    # Original packaging avoids astronaut likenesses and promises the actual explanation.
+    # Original, topic-specific typography avoids implying an unshown event or likeness.
     cover = Image.new("RGB", (720, 1280), (8, 23, 41))
     d = ImageDraw.Draw(cover)
-    d.ellipse(
-        (165, 270, 555, 660), fill=(47, 121, 167), outline=(164, 231, 255), width=8
-    )
-    d.arc((195, 300, 525, 630), 200, 290, fill="white", width=6)
-    wrapped(d, "WHY WATER BECOMES A BALL", 750, 64, "white", 610)
-    d.text((45, 90), "SPACE / EXPLAINED", font=font(26), fill=(255, 208, 135))
+    wrapped(d, brief.title.upper(), 400, 60, "white", 610)
+    d.text((45, 90), "EXPLAINED", font=font(26), fill=(255, 208, 135))
     cover.save(folder / "cover.jpg", quality=93)
     review = {
         "state": "awaiting_editorial_review",
@@ -835,7 +804,10 @@ def produce(payload, folder, inputs, stage):
         "voice": {
             "model": narration.VOICE,
             "profile": brief.voice,
-            "model_sha256": narration.FILES[narration.VOICE + ".onnx"],
+            "model_sha256": narration.FILES["kokoro-v1.0.int8.onnx"],
+            "voices_sha256": narration.FILES["voices-v1.0.bin"],
+            "model_license": "Apache-2.0",
+            "runner_license": "MIT",
         },
         "attention": [
             {
@@ -844,11 +816,11 @@ def produce(payload, folder, inputs, stage):
             },
             {
                 "scene": "rights",
-                "reason": "NASA informational/editorial use only in this pilot. Review identifiable people and intended use before any commercial release.",
+                "reason": "Review per-asset license, attribution, recognizable people and intended use before release.",
             },
         ],
         "cost": {"paid_api_usd": 0},
-        "editorial_method": "Human-authored sourced pilot; acquisition, speech, timing and assembly automated",
+        "editorial_method": "Reviewed subject and shot plan; acquisition, local Kokoro speech, timing and assembly automated",
     }
     write_json(folder / "review.json", review)
     write_json(

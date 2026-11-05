@@ -57,11 +57,11 @@ def inspect(folder):
             "available": "moondream:latest" in models,
             "detail": "moondream:latest"
             if "moondream:latest" in models
-            else "Online footage is skipped without the local vision model.",
+            else "Optional legacy visual verification. Topic footage candidates remain available for review without it.",
         },
         "commons": {
             "enabled": os.environ.get("TSF_COMMONS", "1") == "1",
-            "detail": "CC0 lookup runs per factual preview. Network availability is checked during production.",
+            "detail": "Scene-based CC0 / CC BY 4.0 video lookup; local cleared library first. Candidates require visual review.",
         },
         "library": {
             "entries": count,

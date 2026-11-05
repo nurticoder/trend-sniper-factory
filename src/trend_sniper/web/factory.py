@@ -147,6 +147,12 @@ def install(app, store):
         return result
 
     def run(job, script, progress):
+        if "topic_prepare" in script:
+            from ..production.topic_workflow import prepare
+            return prepare(script["topic_prepare"], root / job, store.path.parent, progress, script.get("production_options",{}).get("voice","steady"))
+        if "topic_render" in script:
+            from ..production.topic_workflow import produce
+            return produce(script["topic_render"], root / job, store.path.parent, progress)
         if "explainer" in script:
             from ..production.explainer import produce
             return produce(script["explainer"], root/job, store.path.parent, progress)
@@ -251,6 +257,8 @@ def install(app, store):
                 or script.get("recipe_card", {}).get("format", "Steam chart"),
                 has_report=item["status"] == "ready"
                 and (root / item["id"] / "production-report.json").is_file(),
+                source_plan=script.get("source_plan"),
+                has_review=item["status"] == "ready" and (root / item["id"] / "review.json").is_file(),
             )
             result.append(item)
         return result

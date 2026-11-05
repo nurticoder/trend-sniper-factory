@@ -21,7 +21,7 @@ from trend_sniper.production.narration import (
     save_wav,
     spoken,
 )
-from trend_sniper.production.voice_install import install
+from trend_sniper.production.voice_install import install_piper as install
 from trend_sniper.web.app import create_app
 
 
@@ -200,22 +200,22 @@ class NarrationTests(unittest.TestCase):
             mix(bed, voice, report)
 
     @patch(
-        "trend_sniper.production.narration.importlib.metadata.version",
-        return_value="1.8.0",
+        "trend_sniper.production.kokoro.importlib.metadata.version",
+        return_value="0.4.7",
     )
     def test_changed_voice_file_cannot_inherit_rights_record(self, _):
-        voice = self.folder / "voices" / "en_US-ljspeech-medium"
+        voice = self.folder / "voices" / "kokoro-82m-v1.0"
         voice.mkdir(parents=True)
         model = voice / "example.onnx"
         model.write_bytes(b"original")
         with patch(
-            "trend_sniper.production.narration.FILES", {"example.onnx": digest(model)}
+            "trend_sniper.production.kokoro.FILES", {"example.onnx": digest(model)}
         ):
             self.assertTrue(availability(self.folder)["available"])
             model.write_bytes(b"replaced")
             self.assertFalse(availability(self.folder)["available"])
             with patch(
-                "trend_sniper.production.narration.digest", side_effect=PermissionError
+                "trend_sniper.production.kokoro.digest", side_effect=PermissionError
             ):
                 self.assertFalse(availability(self.folder)["available"])
 

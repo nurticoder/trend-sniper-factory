@@ -14,7 +14,7 @@ Open **Production studio** for a sourced water-in-microgravity explainer. The no
 
 [Research and automation plan](docs/product/AUTOMATION.md) · [Worker operations, media licenses and release scheduling](docs/product/OPERATING.md)
 
-Choose a niche and produce a private preview. New discovery runs retain competing scripts, scene material decisions, twelve covers and a release-time proposal. The control room exposes the worker report. Daily previews and reviewed owner-channel scheduling are optional.
+Choose a niche to develop an original topic plan, prepare local Kokoro narration and find licensed video candidates per scene. Review the facts and actual footage before building a private preview. The same durable worker handles preparation and assembly. [Current workflow and limits](docs/kokoro-footage-workflow.md).
 
 ## Start the dashboard
 
@@ -31,11 +31,13 @@ Open **http://127.0.0.1:8765**. After installation, macOS users can double-click
 
 The homepage is a scrolling niche explorer built from dated public YouTube channel observations. Picks span gaming, education, news, stories and other subjects. Each shows its production format, reference images, original video links, source date and measured lifetime pace or change between observations. Discovery covers a seeded channel set. An observed audience for reference material is not proof of demand for the adapted format. Scans refresh daily while the app runs.
 
-Choose a niche, then **Produce a Short**. Rankings and news compare up to 100 source-constrained cuts. Fiction uses an optional local model with an honest built-in fallback. The factory matches cleared media, generates and selects among twelve covers, compiles original graphics with captions and timed sound, verifies the MP4, and proposes a release time. A fresh install needs no paid provider. Optional local Piper narration measures speech first, extends scene timing and lowers music during speech. It is installed and verified on the development machine; fresh installations can add it with the setup below.
+Choose a niche, then **Develop topic plan**. The local model writes a subject-specific story and visual briefs; discovery metrics are excluded from its input. Preparation measures Kokoro speech and searches a cleared local library, then Commons CC0/CC BY 4.0 videos using scene queries. Each scene exposes candidate playback, source/license records and missing-material or narration issues. Edit the narration or visual query and prepare again; unchanged speech is cached. Confirm factual support with source URLs/excerpts and inspect each selected shot, then choose **Build reviewed private preview**. Several shots can share a passage. The shared FFmpeg assembler uses actual speech timing, smooth 720×1280/24fps footage, native phrase captions, audio ducking and reusable shot caches. A missing asset or voice blocks this format; it never silently becomes slides.
 
-**The control room** is the production desk: pause or resume the queue, stop jobs, retry from saved inputs, inspect activity/runtime/spend, filter episodes and review completed previews. The worker report contains script comparisons, a timed storyboard, material decisions, covers and release details. Waiting jobs survive a restart. Interrupted jobs keep their inputs for an explicit retry. Run one local server per database.
+Subject research and footage relevance still require review. The small local model is not a reliable automatic fact checker. A keyword match is only a candidate. Discovery remains limited to its seeded channel set. **Explicit analytics report** preserves the legacy upload-statistics renderer as a separate opt-in format.
 
-Daily private previews are opt-in and skip reused source sets. Scheduling requires owner OAuth and review of the exact finished artifacts, audience and disclosure. The transport is implemented but has only been tested with simulated uploads. Live analytics ingestion is not connected. A saved credential is shown separately from verified access.
+**The control room** is the production desk: pause or resume the queue, stop jobs, retry from saved inputs, inspect activity/runtime/spend, filter episodes and review completed previews. Topic jobs link to scene and editorial review. Legacy analytics reports retain script comparisons, a timed storyboard, material decisions, covers and release details. Waiting jobs survive a restart. Interrupted jobs keep their inputs for an explicit retry. Run one local server per database.
+
+Daily topic preparation is opt-in and skips reused source sets; it stops for scene review. Scheduling requires owner OAuth and review of the exact finished artifacts, audience and disclosure. The transport is implemented but has only been tested with simulated uploads. Live analytics ingestion is not connected. A saved credential is shown separately from verified access.
 
 The Steam chart renderer remains available within the same homepage at `/#steam`. It produces original chart graphics from dated Steam observations. Previous manual briefs are preserved inside the control room.
 
@@ -46,7 +48,7 @@ pip install -e ".[voice]"
 trend-sniper install-voice
 ```
 
-This explicit setup downloads a checksum-pinned English voice (about 64 MB) from the upstream model repository. No model downloads occur during production. In Control room, choose **Local voice when available**, **Require local voice**, or **Captions and music only** for new niche previews. Retry attempts preserve their original preference. An unavailable/failed provider is recorded as a fallback, or fails the job when voice is required. [Voice operation and verification](docs/local-narration-validation.md).
+This explicit setup downloads the pinned Kokoro-82M int8 model and voice bank (about 120 MB), using the selected `af_heart` voice offline. No cloud account, per-character fee or production-time download is involved. Production studio offers steady/brisk delivery auditions; earlier Piper auditions are invalidated. Topic explainers require narration. The control-room off/auto/required preference remains for legacy analytics jobs; it cannot silently remove speech from a footage explainer. [Current setup and verification](docs/kokoro-footage-workflow.md).
 
 ## The essential platform
 
@@ -85,7 +87,7 @@ For installation, commands, output format, batch generation and local review/que
 
 Every feature starts on a named branch. Commit and push meaningful working increments, run relevant checks, then open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). No artificial commits, backdating or empty pushes.
 
-Current milestone is local narration on `feat/local-narration`: pinned voice setup, speech-aware scene timing, background ducking and reviewable speech provenance, on top of the durable production desk. Live channel authorization and audience measurement remain account-dependent.
+Current milestone on `feat/kokoro-footage-workflow`: selected Kokoro narration and a reviewed topic-plan → licensed-footage → smooth-preview handoff. Automatic subject fact checking, broader discovery and live publishing verification remain unfinished.
 
 The control room now supports pause/resume, cancellation, retries from saved sources, activity history and searchable previews. The worker report shows leading script candidates and a timed storyboard with source/audio decisions. [Operating guide](docs/product/OPERATING.md) · [Verification](docs/factory-operations-validation.md).
 
@@ -97,6 +99,6 @@ Originality, audience designation and publication decisions require real review.
 
 ### Format studio
 
-The current homepage filters daily observations to five automatic production recipes. Family drama, later-life letters and block-world quests use the local Ollama model `llama3.2:3b` when available. A built-in authored episode covers an offline model. News desk attributes dated headline cards to the reporting channel. Countdown ranks the observed reference uploads by recorded views. Source thumbnails stay in the research interface. Each output uses original motion graphics, on-screen text and synthesized sound. Select a card and press **Produce a Short** to queue the MP4. Publishing and audience review remain separate.
+The homepage distinguishes discovery from subject content. Original topic plans use local Ollama `llama3.2:3b`; invalid or unavailable writing fails visibly. Preparation and reviewed rendering use the workflow above. No built-in fictional story or upload leaderboard is substituted for a topic explanation. The old recipes are retained as legacy components, not the default.
 
 Daily scans compare the same videos across snapshots when available. Initial picks use lifetime views per day. Source-channel attention is a proxy for the proposed format, particularly when adapting family fiction for older viewers.

@@ -3,8 +3,9 @@ const id=name=>document.getElementById(name);
 let offset=0, busy=false;
 async function api(url,options){
   const r=await fetch(url,options);
-  if(!r.ok)throw Error('Could not load this request. Try again.');
-  return r.json();
+  const value=await r.json();
+  if(!r.ok)throw Error(typeof value.detail==='string'?value.detail:'Could not load this request. Check the scene inputs and try again.');
+  return value;
 }
 function references(card){
   const box=el('div','');
@@ -95,12 +96,13 @@ async function watch(key){
   box.hidden=false;box.replaceChildren(el('small','PRODUCTION'),el('h2',job.title));
   if(job.status==='planned'){
     const plan=await api('/api/productions/'+key+'/content-plan.json');
-    box.append(el('strong','Draft plan · facts and footage need review'),el('p',plan.promise),el('p',plan.verification));
-    for(const scene of plan.scenes)box.append(el('p',scene.narration),el('p','Visual: '+scene.visual.subject+' · '+scene.visual.action+' · '+scene.visual.purpose));
-    const download=el('a','Download reusable plan');download.href='/api/productions/'+key+'/content-plan.json';box.append(download);
+    const {reviewPlan}=await import('./content.js?v=kokoro1');
+    reviewPlan(box,key,plan,async job=>{localStorage.setItem('activeProduction',job.id);await watch(job.id);});
   }else if(job.status==='ready'){
     const video=document.createElement('video');video.controls=true;video.src='/api/productions/'+key+'/short.mp4';
     const link=el('a','Download MP4');link.href=video.src;link.download='factory-short.mp4';box.append(video,link);
+    if(job.source_plan){const revise=el('a','Revise the scene plan');revise.href='/?plan='+job.source_plan+'#discover';box.append(revise);}
+    if(job.has_review){const full=el('a','Open full editorial review →');full.href='/?review='+encodeURIComponent(key)+'#production';full.onclick=()=>{localStorage.setItem('explainerJob',key);};box.append(full);}
     if(job.has_report){
       video.poster='/api/productions/'+key+'/cover.jpg';
       const {decisions}=await import('./workers.js?v=narration1');box.append(decisions(job));
@@ -112,4 +114,6 @@ async function watch(key){
     if(['queued','running'].includes(job.status))jobTimer=setTimeout(()=>watch(key).catch(e=>id('status').textContent=e.message),1800);
   }
 }
+const requestedPlan=new URLSearchParams(location.search).get('plan');
+if(requestedPlan)localStorage.setItem('activeProduction',requestedPlan);
 if(localStorage.getItem('activeProduction'))watch(localStorage.getItem('activeProduction')).catch(e=>id('status').textContent=e.message);

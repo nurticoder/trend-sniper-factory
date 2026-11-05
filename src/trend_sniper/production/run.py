@@ -20,10 +20,8 @@ def run_recipe(card, folder, inputs, stage, options=None):
     if (options or {}).get('production_format','content') != 'analytics':
         stage('Writing an original topic story and visual plan')
         topic=build(card)
-        folder.mkdir(parents=True,exist_ok=True)
-        write_json(folder/'content-plan.json',topic)
-        write_json(folder/'script.json',topic)
-        return topic
+        from .topic_workflow import prepare as prepare_topic
+        return prepare_topic(topic, folder, inputs, stage, (options or {}).get("voice", "steady"))
     started = monotonic()
     audit = folder.with_name(folder.name + "-work")
     audit.mkdir(parents=True, exist_ok=True)
@@ -54,7 +52,7 @@ def run_recipe(card, folder, inputs, stage, options=None):
     )
     if narration["state"] == "ready":
         topic["description"] += (
-            "\n\nSynthetic narration: Piper LJ Speech. Model source: "
+            "\n\nSynthetic narration: Kokoro af_heart. Model source: "
             + narration["source"]
         )
     mark("Selecting scene materials")

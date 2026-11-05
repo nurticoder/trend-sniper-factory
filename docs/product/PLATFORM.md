@@ -114,3 +114,7 @@ Optional pinned Piper speech now runs inside niche production jobs. The worker m
 ## Footage-led explainer milestone
 
 Production studio now accepts a topic independently of discovery. The initial curated water-in-microgravity collection implements an original sourced explanation, explicit passage/shot contracts, multiple footage shots per passage, persistent voice-delivery auditions, measured speech timing, prominent smooth footage, phrase captions, original packaging and private review. Runtime scope is deliberately visible: subject writing and initial visual matches were authored/inspected for this pilot, not generalized autonomous research. Research, source footage, speech and prepared shots are reusable. See [pilot operating and validation notes](../footage-explainer-pilot.md).
+
+## Reviewed topic-to-footage milestone
+
+The creator selected Kokoro `af_heart` after auditions. New topic jobs prepare that local narration and scene-query footage candidates, then expose factual-source and visual review before dispatching to the existing smooth assembler. Native phrase captions replace per-frame image overlays. Missing footage or speech prevents this format from becoming a slideshow. Discovery remains seeded; general source research/fact checking and reliable arbitrary-topic footage coverage are unfinished. No publishing or volume expansion is included. See [current workflow and limits](../kokoro-footage-workflow.md).

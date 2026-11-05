@@ -20,7 +20,14 @@ def install(app, store):
             mode = db.execute(
                 "SELECT narration FROM production_preferences WHERE slot=1"
             ).fetchone()[0]
-        return {"narration": mode}
+            delivery = None
+            if db.execute(
+                "SELECT 1 FROM sqlite_master WHERE name='explainer_voice'"
+            ).fetchone():
+                delivery = db.execute(
+                    "SELECT voice FROM explainer_voice WHERE slot=1"
+                ).fetchone()
+        return {"narration": mode, "voice": delivery[0] if delivery else "steady"}
 
     app.state.production_preferences = preferences
 

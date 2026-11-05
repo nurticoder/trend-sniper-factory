@@ -6,10 +6,10 @@ from tempfile import TemporaryDirectory
 from urllib.request import urlopen
 
 from ..core import digest
-from .narration import FILES, REVISION, SOURCE, VOICE, voice_folder
+from .legacy_piper import FILES, REVISION, SOURCE, VOICE, voice_folder
 
 
-def install(inputs):
+def install_piper(inputs):
     destination = voice_folder(inputs)
     if destination.exists():
         if all(
@@ -56,3 +56,10 @@ def install(inputs):
         )
         folder.rename(destination)
     return destination
+
+
+def install(inputs):
+    """Install the selected Kokoro voice explicitly, never during a production request."""
+    from .kokoro import install as install_kokoro
+
+    return install_kokoro(inputs)

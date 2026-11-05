@@ -146,6 +146,8 @@ def create_app(db_path: Path | None = None):
     install_voice(app, store)
     from .factory import install
     install(app, store)
+    from .content import install as install_content
+    install_content(app, store)
     from .niches import install as install_niches
     install_niches(app, store)
     from .readiness import install as install_readiness

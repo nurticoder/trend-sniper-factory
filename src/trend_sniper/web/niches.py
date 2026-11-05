@@ -100,7 +100,7 @@ def install(app, store):
         card = selected()
         if not card or card['id'] != key or not eligible([card]):
             raise HTTPException(409,'Select this format before production.')
-        return app.state.enqueue('content-v3/'+production_format+'/'+edition_key(card),{'title':card['name'],'recipe_card':card,'production_options':{'production_format':production_format}})
+        return app.state.enqueue('content-v4/'+production_format+'/'+edition_key(card),{'title':card['name'],'recipe_card':card,'production_options':{'production_format':production_format}})
 
 
     @app.get('/api/daily-preview')

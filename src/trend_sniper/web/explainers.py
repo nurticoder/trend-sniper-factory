@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..core import digest, write_json
 from ..production.explainer import PROFILES, Brief, key, pilot, utterance
+from ..production.narration import FILES
 from ..queue import snapshot
 
 
@@ -58,6 +59,20 @@ def install(app, store):
 
     with store.connection() as db:
         db.execute(
+            "CREATE TABLE IF NOT EXISTS audition_engine(slot INTEGER PRIMARY KEY, signature TEXT)"
+        )
+        signature = key(FILES)
+        previous = db.execute(
+            "SELECT signature FROM audition_engine WHERE slot=1"
+        ).fetchone()
+        if not previous or previous[0] != signature:
+            db.execute(
+                "UPDATE voice_auditions SET status='failed',error='Voice changed to Kokoro; generate new delivery auditions.'"
+            )
+            db.execute(
+                "INSERT OR REPLACE INTO audition_engine VALUES (1,?)", (signature,)
+            )
+        db.execute(
             "CREATE TABLE IF NOT EXISTS explainer_runs(project TEXT,revision INTEGER,voice TEXT,job TEXT,PRIMARY KEY(project,revision,voice))"
         )
 
@@ -91,7 +106,7 @@ def install(app, store):
             "selected_voice": selected(),
             "profiles": PROFILES,
             "auditions": voices,
-            "scope": "One curated water-in-microgravity collection. Other topics need a new source packet. Two delivery auditions use the same licensed English voice.",
+            "scope": "Kokoro af_heart is selected. Create curated water-in-microgravity briefs here; use Discover for other topic plans, footage searches and scene review. Auditions compare steady and brisk delivery.",
         }
 
     @app.put("/api/explainer-voice")
@@ -201,7 +216,9 @@ def install(app, store):
                 "revision": row[1],
             },
         }
-        result = app.state.enqueue("explainer/" + key(payload["explainer"]), payload)
+        result = app.state.enqueue(
+            "explainer/" + key([payload["explainer"], FILES]), payload
+        )
         with store.connection() as db:
             db.execute(
                 "INSERT OR REPLACE INTO explainer_runs VALUES (?,?,?,?)",

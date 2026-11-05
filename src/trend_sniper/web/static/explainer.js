@@ -89,7 +89,7 @@ async function watch(){
   }
   const base='/api/productions/'+activeJob+'/',r=state.report;
   const video=node('video');video.controls=true;video.preload='metadata';video.src=base+'short.mp4';
-  const poster=node('img');poster.src=base+'cover.jpg';poster.alt='Original title treatment: why water becomes a ball';
+  const poster=node('img');poster.src=base+'cover.jpg';poster.alt=r.brief.title;
   box.replaceChildren(node('small','FINISHED PRIVATE PREVIEW / NOT PUBLISHED'),node('h2',r.brief.title),video,node('p','Paid APIs · $0 · '+r.technical.duration_seconds.toFixed(1)+' seconds · 720 × 1280 at 24fps'),link('Download MP4',base+'short.mp4'));
   const packaging=node('details');packaging.append(node('summary','Title, thumbnail and upload copy'),poster,link('Open title and description',base+'metadata.txt'));box.append(packaging);
   const issues=node('section');issues.append(node('h3','Editorial review'));
@@ -120,4 +120,4 @@ async function watch(){
 $('explainer-intake').onsubmit=async e=>{e.preventDefault();const button=$('explainer-create');button.disabled=true;
  try{await api('/api/explainer-briefs','POST',{topic:$('explainer-topic').value});message('Original sourced brief prepared. Inspect or revise it, then produce your preview.');await load();}catch(e){message(e.message);}finally{button.disabled=false;}};
 $('make-auditions').onclick=async()=>{try{await api('/api/explainer-auditions','POST');await load();}catch(e){message(e.message);}};
-activeJob=localStorage.getItem('explainerJob');load();if(activeJob)watch();
+activeJob=new URLSearchParams(location.search).get('review') || localStorage.getItem('explainerJob');load();if(activeJob)watch();

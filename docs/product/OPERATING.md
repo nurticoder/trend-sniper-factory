@@ -1,5 +1,7 @@
 # Operating the production workers
 
+**Current default:** [Kokoro and reviewed footage workflow](../kokoro-footage-workflow.md). Discover now creates subject plans and prepares scene narration/footage for review before rendering. The detailed ranking/fiction worker notes below describe legacy components. Only an explicit analytics selection invokes the upload-statistics renderer.
+
 Select a niche on Discover and choose **Produce a Short**. Open **Workers, covers & release plan** under the finished preview or in Control room. The panel links to the complete draft pool, cover contact sheet, selected cover, dated observations, edit decisions and proposed release window. Old previews and the standalone Steam chart renderer still work. Worker reports belong to new discovery runs.
 
 ## What executes
@@ -58,7 +60,7 @@ Open **The control room** from the home navigation. The desk shows waiting, runn
 
 On startup, waiting jobs resume automatically unless paused. Running jobs left by a crash become failed with an interruption message, requiring a retry. Old completed previews remain available. There is one local worker and one app process per database. The queue is durable in SQLite, but computation stops when the computer sleeps or the application closes. Graceful shutdown completes the active preview and leaves waiting jobs for the next launch.
 
-**Factory services** performs bounded local checks. An installed model is distinguished from a successful generation. A saved channel connection is distinguished from a freshly verified OAuth grant. Media catalog counts are entries, not clearance approvals. Permissions and file hashes are checked during production. Voice availability is checked against the optional pinned Piper installation. Live analytics remains disconnected. Runtime and zero paid-API spend are recorded for new successful runs. Older or incomplete attempts have unknown spend instead of invented totals. Device/electricity costs are excluded.
+**Factory services** performs bounded local checks. An installed model is distinguished from a successful generation. A saved channel connection is distinguished from a freshly verified OAuth grant. Media catalog counts are entries, not clearance approvals. Permissions and file hashes are checked during production. Voice availability is checked against the selected pinned Kokoro installation. Live analytics remains disconnected. Runtime and zero paid-API spend are recorded for new successful runs. Older or incomplete attempts have unknown spend instead of invented totals. Device/electricity costs are excluded.
 
 In a finished worker report, expand **Compare leading script candidates** and **Selected edit** to read the candidate cuts, scoring criteria, exact scene times, source links and audio cues. Scores are editorial heuristics, not predictions of views. All source/download records remain available alongside the readable view.
 
@@ -69,7 +71,7 @@ New niche productions capture the narration preference when queued. Automatic mo
 
 One-time setup is `pip install -e ".[voice]"` and `trend-sniper install-voice`. For an alternate database directory, use `trend-sniper install-voice --data-dir <database-parent>`. The installer is an explicit download, not an HTTP request or daily task. It stages files before activation and rejects unexpected checksums. Reinstalling a valid voice is a no-op. A changed installation is not overwritten silently.
 
-The approved voice is Piper LJ Speech English. The engine runs locally in a bounded child process, with ONNX runtime telemetry disabled before Piper loads. Text is supplied through standard input. The application does not send scripts to an external speech API. Each utterance has a 40-second synthesis timeout, a 20-second audio limit and a 450-character input limit. The complete narrated edit is limited to 90 seconds.
+The approved production voice is Kokoro-82M af_heart. The engine runs locally in a bounded child process, with ONNX runtime telemetry disabled before loading. Text is supplied through standard input. The application does not send scripts to an external speech API. Each utterance has a 60-second synthesis timeout, a 20-second audio limit and a 450-character input limit. The complete narrated edit is limited to 90 seconds.
 
 The narrator speaks selected script values, with rank/attributed-headline context where applicable. Large comma-formatted metrics in hooks/payoffs are spoken with explicitly approximate rounded wording; exact counts remain on screen. After measuring each WAV, the factory extends scenes if necessary, keeps narration within its scene and selects media against the adjusted duration. The first utterance starts after the half-second cover. Captions remain aligned to scenes, not individual words. Candidate editorial scores describe the pre-voice drafts.
 

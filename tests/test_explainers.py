@@ -106,7 +106,7 @@ class ExplainerContracts(unittest.TestCase):
     def test_encoded_timing_and_dimensions_are_checked(self):
         with patch("trend_sniper.production.explainer.subprocess.run") as probe:
             probe.return_value.stderr = (
-                "Duration: 00:00:37.54 Video: h264 720x1280 24 fps"
+                "Duration: 00:00:37.54 Video: h264 720x1280 24 fps Audio: aac"
             )
             self.assertEqual(technical_review(Path("/tmp"), 37.5416)["fps"], 24)
             with self.assertRaisesRegex(ValueError, "duration disagrees"):
