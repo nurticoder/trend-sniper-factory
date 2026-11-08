@@ -2,7 +2,9 @@
 
 **Current default:** [Autonomous remote production](../autonomous-remote-production.md). Discover dispatches research, footage search/cutting, Kokoro speech and assembly to a connected private worker. The creator reviews a finished preview; missing footage triggers automatic revisions. No local media-production fallback is enabled. Deployment needs an eligible connected account and has not yet been demonstrated live. The detailed ranking/fiction worker notes below describe legacy components. Only an explicit analytics selection invokes the upload-statistics renderer.
 
-Select a niche on Discover and choose **Produce a Short**. Open **Workers, covers & release plan** under the finished preview or in Control room. The panel links to the complete draft pool, cover contact sheet, selected cover, dated observations, edit decisions and proposed release window. Old previews and the standalone Steam chart renderer still work. Worker reports belong to new discovery runs.
+On Discover, select a niche and choose **Produce video automatically**. Open **The control room** to follow the job and open its private preview. If the app reports a disconnected worker, check **Factory services → Remote production worker**. From a saved topic draft, **Finish video automatically** sends the topic to the connected worker for research and production.
+
+For an explicit analytics report, open **Workers, covers & release plan** under the finished preview. This panel shows the draft pool, cover candidates, dated observations, edit decisions and proposed release window.
 
 ## Legacy local components
 
@@ -58,7 +60,7 @@ Open **The control room** from the home navigation. The desk shows waiting, runn
 
 **Retry saved sources** creates a new attempt from the original, frozen input packet. It does not reuse an unfinished MP4. The old attempt and its activity remain visible. Repeated retry requests return the same child attempt. A source set already submitted, even if failed or cancelled, is not silently rerun by daily mode or repeated Produce clicks. Retry it explicitly in Control room. The queue holds at most twelve waiting/running previews.
 
-On startup, waiting jobs resume automatically unless paused. Running jobs left by a crash become failed with an interruption message, requiring a retry. Old completed previews remain available. There is one local worker and one app process per database. The queue is durable in SQLite, but computation stops when the computer sleeps or the application closes. Graceful shutdown completes the active preview and leaves waiting jobs for the next launch.
+On startup, waiting jobs resume automatically unless paused. An interrupted remote job reconnects using its saved worker identity. An interrupted local job is marked failed and can be retried. Completed previews remain available. Run one app process per database. SQLite keeps the local queue across restarts, and a remote worker can continue its active job while the dashboard is closed.
 
 **Factory services** performs bounded local checks. An installed model is distinguished from a successful generation. A saved channel connection is distinguished from a freshly verified OAuth grant. Media catalog counts are entries, not clearance approvals. Permissions and file hashes are checked during production. Voice availability is checked against the selected pinned Kokoro installation. Live analytics remains disconnected. Runtime and zero paid-API spend are recorded for new successful runs. Older or incomplete attempts have unknown spend instead of invented totals. Device/electricity costs are excluded.
 
