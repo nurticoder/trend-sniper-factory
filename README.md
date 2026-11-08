@@ -27,6 +27,8 @@ trend-sniper serve
 
 Open **http://127.0.0.1:8765**. After installation, macOS users can double-click `start.command` to start the server and open a browser. Keep its terminal running while using the app; Ctrl+C stops it. Windows users activate `.venv\Scripts\activate` instead.
 
+To explore a finished edit without configuring a cloud worker, watch the [bundled demo](examples/demo/short.mp4). In the dashboard, **Discover** shows dated niche evidence, **Production studio** holds the curated explainer, and **The control room** shows jobs and the cloud connection status. A fresh checkout has an empty job history.
+
 ## What works today
 
 The homepage is a scrolling niche explorer built from dated public YouTube channel observations. Picks span gaming, education, news, stories and other subjects. Each shows its production format, reference images, original video links, source date and measured lifetime pace or change between observations. Discovery covers a seeded channel set. An observed audience for reference material is not proof of demand for the adapted format. Scans refresh daily while the app runs.
